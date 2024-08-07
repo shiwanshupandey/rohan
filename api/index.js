@@ -15,6 +15,7 @@ const HazardRoutes = require('../routes/Hazards');
 const ToolsRoutes = require('../routes/Tools');
 const PPEsRoutes = require('../routes/PPEs');
 const PermitsRoutes = require('../routes/Permits');
+const PageFields = require('../routes/PageFields');
 
 const app = express();
 
@@ -48,5 +49,6 @@ app.use('/hazards', HazardRoutes);
 app.use('/tools', ToolsRoutes);
 app.use('/ppe', PPEsRoutes);
 app.use('/permitstype', PermitsRoutes);
+app.use('/fields', PageFields);
 
 module.exports = app;
