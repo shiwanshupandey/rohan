@@ -1,42 +1,28 @@
 const mongoose = require('mongoose');
 
+
 const validateImageUrl = url => {
   const regex = /\.(jpeg|jpg|gif|png|svg|webp)$/;
   return regex.test(url);
 };
 
-const InductionSchema = new mongoose.Schema({
-  projectName: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Project',
-    required: true
-  },
-  date: {
-    type: Date,
-    required: true
-  },
-  time: {
-    type: String,
-    required: true
-  },
-  inductees: {
-    type: String,
-    required: true
-  },
-  inducteesName: {
-    type: String,
-    required: true
-  },
-  subContractorName: {
-    type: String,
-    required: true
-  },
+
+const SpecificMeeting = new mongoose.Schema({
+  projectName: { type: mongoose.Schema.Types.ObjectId, ref: 'Project', required: true},
+  date: { type: Date, required: true },
+  time: { type: String, required: true },
+  topicName: { type: String, required: true },
   typeOfTopic:{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Topic',
     required: true
   },
-  tradeTypes: [{
+  attendees: [{ 
+    type: String,
+    required: true
+}],
+   inducteesName: { type: String, required: true },
+   tradeTypes: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Trade',
     required: true
@@ -46,7 +32,7 @@ const InductionSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  documentaryEvidencePhoto: {
+  documentaryEvidencePhoto: { 
     type: String,
     validate: {
       validator: validateImageUrl,
@@ -54,7 +40,7 @@ const InductionSchema = new mongoose.Schema({
     },
     required: true
   },
-  inductedSignBy: {
+  traineeSignBy: {
     type: String,
     validate: {
       validator: validateImageUrl,
@@ -62,7 +48,7 @@ const InductionSchema = new mongoose.Schema({
     },
     required: true
   },
-  inducteeSignBy: [{
+  trainingSignBy: [{
     type: String,
     validate: {
       validator: validateImageUrl,
@@ -70,18 +56,8 @@ const InductionSchema = new mongoose.Schema({
     },
     required: true
   }],
-  geotagging: {
-    type: String,
-    required: true
-  },
-  commentsBox: {
-    type: String,
-    required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+  geotagging: { type: String, required: true },
+  commentsBox: { type: String, required: true },
 });
 
-module.exports = mongoose.model('Induction', InductionSchema);
+module.exports = mongoose.model('SpecificMeeting', SpecificMeeting);

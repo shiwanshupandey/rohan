@@ -18,10 +18,10 @@ const MeetingSchema = new mongoose.Schema({
     required: true
   },
   attendees: [{ 
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: String,
     required: true
-   }],
+}],
+   attendeesNos: { type: String, required: true },
   documentaryEvidencePhoto: { 
     type: String,
     validate: {

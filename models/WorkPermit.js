@@ -35,6 +35,11 @@ const PermitSchema = new mongoose.Schema({
     ref: 'Tools',
     required: true
    }],
+   toolsTested: { 
+    type: String, 
+    enum: ['Yes', 'No', 'N/A'], 
+    required: true 
+  },
   workDescription: { 
     type: String 
   },
@@ -48,7 +53,11 @@ const PermitSchema = new mongoose.Schema({
     ref: 'PPEs',
     required: true
   }],
-  safetyMeasuresTaken:{ type: String },
+  safetyMeasuresTaken:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SafetyChecks',
+    required: true
+    },
   undersignDraft: { 
     type: String,
     validate: {
@@ -79,7 +88,8 @@ const PermitSchema = new mongoose.Schema({
    approvalDone:{
     type: Boolean,
     default: false
-  }
+  },
+  geotagging: { type: String, required: true },
 });
 
 module.exports = mongoose.model('Permit', PermitSchema);

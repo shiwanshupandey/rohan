@@ -1,5 +1,5 @@
 const express = require('express');
-const Observation = require('../models/Sora');
+const Observation = require('../models/UaUC');
 const router = express.Router();
 
 // Create a new observation

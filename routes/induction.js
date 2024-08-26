@@ -17,18 +17,39 @@ const storage = multer.diskStorage({
 // Initialize Multer with the storage configuration
 const upload = multer({ storage });
 
-// Create a new induction
-// Create a new induction
-// Create a new induction
 router.post('/', async (req, res) => {
   try {
-    console.log('Request body:', req.body);
-    const { projectName, inductees, date, time, tradeTypes, instructionBy, documentaryEvidencePhoto, inductedSignBy, inducteeSignBy, geotagging, commentsBox } = req.body;
+    const {
+      projectName,
+      date,
+      time,
+      inductees,
+      inducteesName,
+      subContractorName,
+      typeOfTopic,
+      tradeTypes,
+      instructionBy,
+      documentaryEvidencePhoto,
+      inductedSignBy,
+      inducteeSignBy,
+      geotagging,
+      commentsBox
+    } = req.body;
+
+    // Validate the required fields
+    if (!documentaryEvidencePhoto) {
+      return res.status(400).json({ error: "documentaryEvidencePhoto is required" });
+    }
+
+    // Create a new induction record
     const newInduction = new Induction({
       projectName,
       date,
       time,
       inductees,
+      inducteesName,
+      subContractorName,
+      typeOfTopic,
       tradeTypes,
       instructionBy,
       documentaryEvidencePhoto,
@@ -37,20 +58,19 @@ router.post('/', async (req, res) => {
       geotagging,
       commentsBox
     });
+
     await newInduction.save();
     res.status(201).json(newInduction);
   } catch (error) {
-    console.error('Error:', error);
-    res.status(400).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ error: error.message });
   }
 });
-
-
 
 // Get all inductions
 router.get('/', async (req, res) => {
   try {
-    const inductions = await Induction.find().populate(['projectName', 'tradeTypes', 'instructionBy']);
+    const inductions = await Induction.find().populate(['projectName', 'typeOfTopic', 'tradeTypes', 'instructionBy']);
     res.json(inductions);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -60,7 +80,7 @@ router.get('/', async (req, res) => {
 // Get a single induction by ID
 router.get('/:id', async (req, res) => {
   try {
-    const induction = await Induction.findById(req.params.id).populate(['projectName', 'tradeTypes', 'instructionBy']);
+    const induction = await Induction.findById(req.params.id).populate(['projectName', 'typeOfTopic', 'tradeTypes', 'instructionBy']);
     if (induction == null) {
       return res.status(404).json({ message: 'Induction not found' });
     }
@@ -71,23 +91,38 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update an induction by ID
-router.put('/:id', upload.single('documentaryEvidencePhoto'), async (req, res) => {
+router.put('/:id', upload.fields([
+  { name: 'documentaryEvidencePhoto', maxCount: 1 },
+  { name: 'inductedSignBy', maxCount: 1 },
+  { name: 'inducteeSignBy', maxCount: 10 }
+]), async (req, res) => {
   try {
     const induction = await Induction.findById(req.params.id);
     if (induction == null) {
       return res.status(404).json({ message: 'Induction not found' });
     }
 
-    const { projectName, inductees, tradeTypes, instructionBy, inductedSignBy, inducteeSignBy, geotagging, commentsBox } = req.body;
-    if (req.file) {
-      induction.documentaryEvidencePhoto = req.file.filename;
+    const { projectName, date, time, inductees, inducteesName, subContractorName, typeOfTopic, tradeTypes, instructionBy, geotagging, commentsBox } = req.body;
+
+    if (req.files.documentaryEvidencePhoto) {
+      induction.documentaryEvidencePhoto = req.files.documentaryEvidencePhoto[0].filename;
     }
+    if (req.files.inductedSignBy) {
+      induction.inductedSignBy = req.files.inductedSignBy[0].filename;
+    }
+    if (req.files.inducteeSignBy) {
+      induction.inducteeSignBy = req.files.inducteeSignBy.map(file => file.filename);
+    }
+
     induction.projectName = projectName;
+    induction.date = date;
+    induction.time = time;
     induction.inductees = inductees;
+    induction.inducteesName = inducteesName;
+    induction.subContractorName = subContractorName;
+    induction.typeOfTopic = typeOfTopic;
     induction.tradeTypes = tradeTypes;
     induction.instructionBy = instructionBy;
-    induction.inductedSignBy = inductedSignBy;
-    induction.inducteeSignBy = inducteeSignBy;
     induction.geotagging = geotagging;
     induction.commentsBox = commentsBox;
 
@@ -98,6 +133,7 @@ router.put('/:id', upload.single('documentaryEvidencePhoto'), async (req, res) =
   }
 });
 
+// Delete an induction by ID
 router.delete('/:id', async (req, res) => {
   try {
     const induction = await Induction.findByIdAndDelete(req.params.id);

@@ -14,20 +14,20 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Get all users
+// Get all users with populated role field
 router.get('/', async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().populate('role');
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// Get a single user by ID
+// Get a single user by ID with populated role field
 router.get('/:id', async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params.id).populate('role');
     if (user == null) {
       return res.status(404).json({ message: 'User not found' });
     }

@@ -5,7 +5,7 @@ const inductionRoutes = require('../routes/induction');
 const TbtMeetingRoutes = require('../routes/TbtMeeting');
 const IncidentReportRoutes = require('../routes/IncidentReport');
 const InspectionRoutes = require('../routes/Inspection');
-const SORARoutes = require('../routes/Sora');
+const UaUCRoutes = require('../routes/UaUC');
 const PermitRoutes = require('../routes/WorkPermit');
 const UserRoutes = require('../routes/user');
 const ProjectRoutes = require('../routes/Projects');
@@ -16,6 +16,9 @@ const ToolsRoutes = require('../routes/Tools');
 const PPEsRoutes = require('../routes/PPEs');
 const PermitsRoutes = require('../routes/Permits');
 const PageFields = require('../routes/PageFields');
+const SpecificMeeting = require('../routes/SpecificMeeting');
+const riskRatingRoutes = require('../routes/RiskRating');
+const RoleRoutes  = require('../routes/Role');
 
 const app = express();
 
@@ -39,7 +42,8 @@ app.use('/induction', inductionRoutes);
 app.use('/meeting', TbtMeetingRoutes);
 app.use('/incident', IncidentReportRoutes);
 app.use('/inspection', InspectionRoutes);
-app.use('/sora', SORARoutes);
+app.use('/specific', SpecificMeeting);
+app.use('/uauc', UaUCRoutes);
 app.use('/permit', PermitRoutes);
 app.use('/user', UserRoutes);
 app.use('/projects', ProjectRoutes);
@@ -50,5 +54,7 @@ app.use('/tools', ToolsRoutes);
 app.use('/ppe', PPEsRoutes);
 app.use('/permitstype', PermitsRoutes);
 app.use('/fields', PageFields);
+app.use('/riskrating', riskRatingRoutes);
+app.use('/role', RoleRoutes);
 
 module.exports = app;
