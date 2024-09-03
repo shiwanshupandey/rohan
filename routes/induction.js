@@ -91,6 +91,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update an induction by ID
+// Update an induction by ID
 router.put('/:id', upload.fields([
   { name: 'documentaryEvidencePhoto' },
   { name: 'inductedSignBy' },
@@ -101,6 +102,10 @@ router.put('/:id', upload.fields([
     if (!induction) {
       return res.status(404).json({ message: 'Induction not found' });
     }
+
+    // Log files and request body to debug
+    console.log('Files:', req.files);
+    console.log('Body:', req.body);
 
     const {
       projectName,
@@ -116,17 +121,14 @@ router.put('/:id', upload.fields([
       commentsBox
     } = req.body;
 
-    // Log files to debug
-    console.log(req.files);
-
     // Check and update file fields
-    if (req.files.documentaryEvidencePhoto) {
+    if (req.files && req.files.documentaryEvidencePhoto) {
       induction.documentaryEvidencePhoto = req.files.documentaryEvidencePhoto.map(file => file.filename);
     }
-    if (req.files.inductedSignBy) {
+    if (req.files && req.files.inductedSignBy) {
       induction.inductedSignBy = req.files.inductedSignBy.map(file => file.filename);
     }
-    if (req.files.inducteeSignBy) {
+    if (req.files && req.files.inducteeSignBy) {
       induction.inducteeSignBy = req.files.inducteeSignBy.map(file => file.filename);
     }
 
@@ -146,11 +148,10 @@ router.put('/:id', upload.fields([
     await induction.save();
     res.json(induction);
   } catch (error) {
-    console.error(error);
+    console.error('Error:', error);
     res.status(400).json({ message: error.message });
   }
 });
-
 // Delete an induction by ID
 router.delete('/:id', async (req, res) => {
   try {
