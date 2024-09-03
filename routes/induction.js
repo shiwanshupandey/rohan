@@ -92,9 +92,9 @@ router.get('/:id', async (req, res) => {
 
 // Update an induction by ID
 router.put('/:id', upload.fields([
-  { name: 'documentaryEvidencePhoto', maxCount: 1 },
-  { name: 'inductedSignBy', maxCount: 1 },
-  { name: 'inducteeSignBy', maxCount: 10 }
+  { name: 'documentaryEvidencePhoto'},
+  { name: 'inductedSignBy' },
+  { name: 'inducteeSignBy' }
 ]), async (req, res) => {
   try {
     const induction = await Induction.findById(req.params.id);
