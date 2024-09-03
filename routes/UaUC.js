@@ -14,20 +14,32 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Get all observations
 router.get('/', async (req, res) => {
   try {
-    const observations = await Observation.find();
+    const observations = await Observation.find()
+      .populate('projectName')  // Populate the Project reference
+      .populate('observer')      // Populate the User reference for observer
+      .populate('hazards')       // Populate the Hazards reference
+      .populate('riskValue')     // Populate the RiskRating reference
+      .populate('assignedTo')    // Populate the User reference for assignedTo
+      .populate('actionTakenBy'); // Populate the User reference for actionTakenBy
     res.json(observations);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// Get a single observation by ID
+
 router.get('/:id', async (req, res) => {
   try {
-    const observation = await Observation.findById(req.params.id);
+    const observation = await Observation.findById(req.params.id)
+      .populate('projectName')  // Populate the Project reference
+      .populate('observer')      // Populate the User reference for observer
+      .populate('hazards')       // Populate the Hazards reference
+      .populate('riskValue')     // Populate the RiskRating reference
+      .populate('assignedTo')    // Populate the User reference for assignedTo
+      .populate('actionTakenBy'); // Populate the User reference for actionTakenBy
+
     if (observation == null) {
       return res.status(404).json({ message: 'Observation not found' });
     }
@@ -36,6 +48,7 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 // Update an observation by ID
 router.put('/:id', async (req, res) => {
