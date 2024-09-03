@@ -38,7 +38,7 @@ const UaUCSchema = new mongoose.Schema({
     type: String,
     enum: ['Open', 'Closed'],
     default: 'Closed'
-  }
+  },
   geotagging: { type: String },
   comment: { type: String }
 });
