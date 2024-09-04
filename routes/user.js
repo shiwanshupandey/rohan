@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 
-const JWT_SECRET = 'your_jwt_secret';
+const JWT_SECRET = '8dfW@4^0YbWvX|X9jZ0s7&mkHbG5NsKlfqTdZvJ^!bQ1Qz8bE6K@PhM9$QzT!4L';
 
 // Register (Sign-up)
 router.post('/register', async (req, res) => {
