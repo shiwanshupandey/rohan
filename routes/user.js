@@ -7,6 +7,18 @@ const router = express.Router();
 
 const JWT_SECRET = '8dfW@4^0YbWvX|X9jZ0s7&mkHbG5NsKlfqTdZvJ^!bQ1Qz8bE6K@PhM9$QzT!4L';
 
+
+// Get all users
+router.get('/', async (req, res) => {
+  try {
+      const users = await User.find(); // Find all users
+      res.json(users);
+  } catch (error) {
+      res.status(500).json({ message: 'Server error', error });
+  }
+});
+
+
 // Register (Sign-up)
 router.post('/register', async (req, res) => {
   try {
