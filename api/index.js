@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const cors = require('cors');  // Import cors middleware
+
 const inductionRoutes = require('../routes/induction');
 const TbtMeetingRoutes = require('../routes/TbtMeeting');
 const IncidentReportRoutes = require('../routes/IncidentReport');
@@ -24,6 +26,13 @@ const app = express();
 
 // Middleware
 app.use(bodyParser.json());
+
+// CORS configuration for a specific site
+const corsOptions = {
+  origin: 'http://localhost:63049',  // Replace with the site you want to allow access from
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));  // Use CORS middleware with options
 
 // MongoDB connection
 mongoose.connect('mongodb+srv://shiwanshuanooppandey:7Hlv1DPRnhpe1zw1@cluster0.fsdpzg2.mongodb.net/Rohan', {
