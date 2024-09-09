@@ -29,7 +29,7 @@ app.use(bodyParser.json());
 
 // CORS configuration for a specific site
 const corsOptions = {
-  origin: 'http://localhost:8080',  // Replace with the site you want to allow access from
+  origin: 'http://localhost:8089',  // Replace with the site you want to allow access from
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));  // Use CORS middleware with options
