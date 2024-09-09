@@ -9,11 +9,7 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true },
     phone: { type: String, required: true },
     address: {
-        street: { type: String },
-        city: { type: String },
-        state: { type: String },
-        zip: { type: String },
-        country: { type: String }
+        type: String, required: true
     },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
