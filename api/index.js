@@ -31,7 +31,8 @@ app.use(bodyParser.json());
 const corsOptions = {
     origin: [
     'http://localhost:8089', 
-    'https://rohan.innotechconsultant.co.in/#/loginPage'
+    'https://rohan.innotechconsultant.co.in/#/loginPage',
+    'https://rohan.innotechconsultant.co.in'
   ],  // Replace with the site you want to allow access from
   optionsSuccessStatus: 200
 };
