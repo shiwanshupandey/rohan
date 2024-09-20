@@ -68,31 +68,35 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Update a SpecificMeeting by ID
+/// Update a SpecificMeeting by ID
 router.put('/:id', upload.single('documentaryEvidencePhoto'), async (req, res) => {
   try {
     const meeting = await SpecificMeeting.findById(req.params.id);
-    if (meeting == null) {
+    if (!meeting) {
       return res.status(404).json({ message: 'SpecificMeeting not found' });
     }
 
+    // Update only the fields that are provided in the request body
     const { projectName, date, time, topicName, typeOfTopic, attendees, inducteesName, tradeTypes, instructionBy, traineeSignBy, trainingSignBy, geotagging, commentsBox } = req.body;
+
     if (req.file) {
-      meeting.documentaryEvidencePhoto = req.file.filename;
+      meeting.documentaryEvidencePhoto = req.file.filename; // Update the file if provided
     }
-    meeting.projectName = projectName;
-    meeting.date = date;
-    meeting.time = time;
-    meeting.topicName = topicName;
-    meeting.typeOfTopic = typeOfTopic;
-    meeting.attendees = attendees;
-    meeting.inducteesName = inducteesName;
-    meeting.tradeTypes = tradeTypes;
-    meeting.instructionBy = instructionBy;
-    meeting.traineeSignBy = traineeSignBy;
-    meeting.trainingSignBy = trainingSignBy;
-    meeting.geotagging = geotagging;
-    meeting.commentsBox = commentsBox;
+
+    // Only update fields that exist in the request body, leave others unchanged
+    if (projectName) meeting.projectName = projectName;
+    if (date) meeting.date = date;
+    if (time) meeting.time = time;
+    if (topicName) meeting.topicName = topicName;
+    if (typeOfTopic) meeting.typeOfTopic = typeOfTopic;
+    if (attendees) meeting.attendees = attendees;
+    if (inducteesName) meeting.inducteesName = inducteesName;
+    if (tradeTypes) meeting.tradeTypes = tradeTypes;
+    if (instructionBy) meeting.instructionBy = instructionBy;
+    if (traineeSignBy) meeting.traineeSignBy = traineeSignBy;
+    if (trainingSignBy) meeting.trainingSignBy = trainingSignBy;
+    if (geotagging) meeting.geotagging = geotagging;
+    if (commentsBox) meeting.commentsBox = commentsBox;
 
     await meeting.save();
     res.json(meeting);
