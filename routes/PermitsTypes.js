@@ -48,13 +48,14 @@ router.patch('/:id', getHazard, async (req, res) => {
 // Delete a permitsType
 router.delete('/:id', getHazard, async (req, res) => {
   try {
-    await res.permitsType.remove();
-    res.json({ message: 'Deleted Hazard' });
+    await res.permitsType.deleteOne();  // Use deleteOne() method
+    res.json({ message: 'Deleted permitsType' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
+// Middleware to get permitsType by ID
 async function getHazard(req, res, next) {
   let permitsType;
   try {
@@ -69,5 +70,6 @@ async function getHazard(req, res, next) {
   res.permitsType = permitsType;
   next();
 }
+
 
 module.exports = router;
