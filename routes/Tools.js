@@ -12,55 +12,68 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Get a single tools
-router.get('/:id', getHazard, (req, res) => {
+// Get a single tool
+router.get('/:id', getTool, (req, res) => {
   res.json(res.tools);
 });
 
-// Create a new tools
+// Create a new tool
 router.post('/', async (req, res) => {
   const tools = new Tools({
     tools: req.body.tools
   });
 
   try {
-    const newHazard = await tools.save();
-    res.status(201).json(newHazard);
+    const newTool = await tools.save();
+    res.status(201).json(newTool);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
-// Update a tools
-router.patch('/:id', getHazard, async (req, res) => {
+// Update a tool (PATCH - partial update)
+router.patch('/:id', getTool, async (req, res) => {
   if (req.body.tools != null) {
     res.tools.tools = req.body.tools;
   }
 
   try {
-    const updatedHazard = await res.tools.save();
-    res.json(updatedHazard);
+    const updatedTool = await res.tools.save();
+    res.json(updatedTool);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
-// Delete a tools
-router.delete('/:id', getHazard, async (req, res) => {
+// Replace a tool (PUT - full update)
+router.put('/:id', getTool, async (req, res) => {
+  res.tools.tools = req.body.tools;
+
   try {
-    await res.tools.remove();
-    res.json({ message: 'Deleted Hazard' });
+    const updatedTool = await res.tools.save();
+    res.json(updatedTool);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Delete a tool
+router.delete('/:id', getTool, async (req, res) => {
+  try {
+    await res.tools.deleteOne();  // Correct method for deleting
+    res.json({ message: 'Deleted Tool' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-async function getHazard(req, res, next) {
+// Middleware to get tool by ID
+async function getTool(req, res, next) {
   let tools;
   try {
     tools = await Tools.findById(req.params.id);
     if (tools == null) {
-      return res.status(404).json({ message: 'Cannot find tools' });
+      return res.status(404).json({ message: 'Cannot find tool' });
     }
   } catch (err) {
     return res.status(500).json({ message: err.message });
