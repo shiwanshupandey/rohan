@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
         value: req.body.value,
         severity: req.body.severity,
         alertTimeline: req.body.alertTimeline,
-        escalationAlert: req.body.escalationAlert,
+        escalationAlert: req.body.escalationAlert, // Ensure this matches your schema type
         repeatWarning: req.body.repeatWarning
     });
 
@@ -47,11 +47,29 @@ router.put('/:id', async (req, res) => {
         const riskRating = await RiskRating.findById(req.params.id);
         if (!riskRating) return res.status(404).json({ message: 'RiskRating not found' });
 
+        // Update fields only if they are provided in the request body
         if (req.body.value != null) riskRating.value = req.body.value;
         if (req.body.severity != null) riskRating.severity = req.body.severity;
         if (req.body.alertTimeline != null) riskRating.alertTimeline = req.body.alertTimeline;
-        if (req.body.escalationAlert != null) riskRating.escalationAlert = req.body.escalationAlert;
         if (req.body.repeatWarning != null) riskRating.repeatWarning = req.body.repeatWarning;
+
+        // Only process escalationAlert if it is provided in the request body
+        if (req.body.escalationAlert != null) {
+            if (Array.isArray(req.body.escalationAlert)) {
+                // Convert the array of strings to ObjectIds if necessary
+                riskRating.escalationAlert = req.body.escalationAlert.map(item => {
+                    // Check if the item is a valid ObjectId
+                    if (mongoose.Types.ObjectId.isValid(item)) {
+                        return mongoose.Types.ObjectId(item); // Convert to ObjectId
+                    } else {
+                        // Handle invalid ObjectId
+                        throw new Error(`Invalid ObjectId: ${item}`);
+                    }
+                });
+            } else {
+                return res.status(400).json({ message: 'escalationAlert must be an array of ObjectIds' });
+            }
+        }
 
         const updatedRiskRating = await riskRating.save();
         res.json(updatedRiskRating);
@@ -66,7 +84,7 @@ router.delete('/:id', async (req, res) => {
         const riskRating = await RiskRating.findById(req.params.id);
         if (!riskRating) return res.status(404).json({ message: 'RiskRating not found' });
 
-        await riskRating.remove();
+        await riskRating.deleteOne();
         res.json({ message: 'RiskRating deleted' });
     } catch (err) {
         res.status(500).json({ message: err.message });
