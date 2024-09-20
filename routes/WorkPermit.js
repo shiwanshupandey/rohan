@@ -79,28 +79,21 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Update a permit by ID
-router.put('/:id', async (req, res) => {
+// Delete a permit by ID
+router.delete('/:id', async (req, res) => {
   try {
-    const permit = await Permit.findById(req.params.id);
+    const permit = await Permit.findByIdAndDelete(req.params.id);
+    
     if (permit == null) {
       return res.status(404).json({ message: 'Permit not found' });
     }
 
-    // Update fields (make sure permitTypes and other reference fields are handled properly)
-    if (req.body.permitTypes) {
-      permit.permitTypes = req.body.permitTypes;
-    }
-
-    // Handle other fields here, similar to above
-    Object.assign(permit, req.body);
-
-    await permit.save();
-    res.json(permit);
+    res.json({ message: 'Permit deleted successfully' });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
+
 
 
 module.exports = router;
