@@ -46,6 +46,19 @@ router.patch('/:id', getHazard, async (req, res) => {
   }
 });
 
+
+router.put('/:id', getHazard, async (req, res) => {
+  res.permitsType.permitsType = req.body.permitsType;
+  res.permitsType.SafetyChecks = req.body.SafetyChecks;
+
+  try {
+    const updatedPermitsType = await res.permitsType.save();
+    res.json(updatedPermitsType);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 // Delete a permitsType
 router.delete('/:id', getHazard, async (req, res) => {
   try {
