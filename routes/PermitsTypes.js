@@ -32,7 +32,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-
 // Update a permitsType
 router.patch('/:id', getHazard, async (req, res) => {
   if (req.body.permitsType != null) {
