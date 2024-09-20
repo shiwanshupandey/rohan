@@ -44,9 +44,7 @@ app.use(cors(corsOptions));  // Use CORS middleware with options
 const mongoUri = process.env.MONGO_URI || 'mongodb+srv://shiwanshuanooppandey:7Hlv1DPRnhpe1zw1@cluster0.fsdpzg2.mongodb.net/Rohan';
 mongoose.connect(mongoUri, {
   useNewUrlParser: true,    // Ensure proper parsing of the connection string
-  useUnifiedTopology: true, // Use the new connection management engine
-  useFindAndModify: false,  // Avoid deprecated methods
-  useCreateIndex: true      // Avoid deprecated collection.ensureIndex
+  useUnifiedTopology: true
 });
 
 
