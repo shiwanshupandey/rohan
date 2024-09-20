@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const PermitsType = require('../models/PermitsTypes');
+const PermitsType = require('../models/PermitsTypes.js');
 
 // Get all permitsType
 router.get('/', async (req, res) => {
