@@ -38,11 +38,11 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));  // Use CORS middleware with options
 
-// MongoDB connection
-mongoose.connect('mongodb+srv://shiwanshuanooppandey:7Hlv1DPRnhpe1zw1@cluster0.fsdpzg2.mongodb.net/Rohan', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+
+
+
+mongoose.connect('mongodb+srv://shiwanshuanooppandey:7Hlv1DPRnhpe1zw1@cluster0.fsdpzg2.mongodb.net/Rohan');
+
 
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
@@ -57,7 +57,7 @@ app.use('/incident', IncidentReportRoutes);
 app.use('/inspection', InspectionRoutes);
 app.use('/specific', SpecificMeeting);
 app.use('/uauc', UaUCRoutes);
-app.use('/workpermit', WorkPermitRoute);
+app.use('/workpermit', WorkPermitRoutes);
 app.use('/user', UserRoutes);
 app.use('/projects', ProjectRoutes);
 app.use('/trade', TradeRoutes);
@@ -69,5 +69,9 @@ app.use('/permitstype', PermitsTypesRoutes);
 app.use('/fields', PageFields);
 app.use('/riskrating', riskRatingRoutes);
 app.use('/role', RoleRoutes);
+
+
+
+
 
 module.exports = app;
