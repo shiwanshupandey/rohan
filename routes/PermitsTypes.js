@@ -20,16 +20,18 @@ router.get('/:id', getHazard, (req, res) => {
 // Create a new permitsType
 router.post('/', async (req, res) => {
   const permitsType = new PermitsType({
-    permitsType: req.body.permitsType
+    permitsType: req.body.permitsType,
+    SafetyChecks: req.body.SafetyChecks  // Add SafetyChecks here
   });
 
   try {
-    const newHazard = await permitsType.save();
-    res.status(201).json(newHazard);
+    const newPermitsType = await permitsType.save();
+    res.status(201).json(newPermitsType);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
+
 
 // Update a permitsType
 router.patch('/:id', getHazard, async (req, res) => {
