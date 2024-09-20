@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get a single ppes
-router.get('/:id', getHazard, (req, res) => {
+router.get('/:id', getPPE, (req, res) => {
   res.json(res.ppes);
 });
 
@@ -24,43 +24,56 @@ router.post('/', async (req, res) => {
   });
 
   try {
-    const newHazard = await ppes.save();
-    res.status(201).json(newHazard);
+    const newPPE = await ppes.save();
+    res.status(201).json(newPPE);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
-// Update a ppes
-router.patch('/:id', getHazard, async (req, res) => {
+// Update a ppes (PATCH - partial update)
+router.patch('/:id', getPPE, async (req, res) => {
   if (req.body.ppes != null) {
     res.ppes.ppes = req.body.ppes;
   }
 
   try {
-    const updatedHazard = await res.ppes.save();
-    res.json(updatedHazard);
+    const updatedPPE = await res.ppes.save();
+    res.json(updatedPPE);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Replace a ppes (PUT - full update)
+router.put('/:id', getPPE, async (req, res) => {
+  res.ppes.ppes = req.body.ppes;
+
+  try {
+    const updatedPPE = await res.ppes.save();
+    res.json(updatedPPE);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 });
 
 // Delete a ppes
-router.delete('/:id', getHazard, async (req, res) => {
+router.delete('/:id', getPPE, async (req, res) => {
   try {
-    await res.ppes.remove();
-    res.json({ message: 'Deleted Hazard' });
+    await res.ppes.deleteOne();  // Corrected deleteOne instead of remove
+    res.json({ message: 'Deleted PPE' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-async function getHazard(req, res, next) {
+// Middleware to get ppes by ID
+async function getPPE(req, res, next) {
   let ppes;
   try {
     ppes = await PPEs.findById(req.params.id);
     if (ppes == null) {
-      return res.status(404).json({ message: 'Cannot find ppes' });
+      return res.status(404).json({ message: 'Cannot find PPE' });
     }
   } catch (err) {
     return res.status(500).json({ message: err.message });
