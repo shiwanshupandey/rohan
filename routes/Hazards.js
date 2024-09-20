@@ -45,16 +45,28 @@ router.patch('/:id', getHazard, async (req, res) => {
   }
 });
 
-// Delete a hazard
+// Replace a hazard (PUT - full update)
+router.put('/:id', getHazard, async (req, res) => {
+  res.hazard.hazards = req.body.hazards;
+
+  try {
+    const updatedHazard = await res.hazard.save();
+    res.json(updatedHazard);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 router.delete('/:id', getHazard, async (req, res) => {
   try {
-    await res.hazard.remove();
+    await res.hazard.deleteOne();  // Use deleteOne() instead of remove()
     res.json({ message: 'Deleted Hazard' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
+// Middleware to get hazard by ID
 async function getHazard(req, res, next) {
   let hazard;
   try {
