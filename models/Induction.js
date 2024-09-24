@@ -27,6 +27,11 @@ const InductionSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  tradeTypes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Trade',
+    required: true
+  }],
   subContractorName: {
     type: String,
     required: true
@@ -34,16 +39,6 @@ const InductionSchema = new mongoose.Schema({
   typeOfTopic:{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Topic',
-    required: true
-  },
-  tradeTypes: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Trade',
-    required: true
-  }],
-  instructionBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
     required: true
   },
   documentaryEvidencePhoto: {
@@ -54,12 +49,13 @@ const InductionSchema = new mongoose.Schema({
     },
     required: true
   },
-  inductedSignBy: {
+  AnyOthers: {
     type: String,
-    validate: {
-      validator: validateImageUrl,
-      message: props => `${props.value} is not a valid image URL!`
-    },
+    required: true
+  },
+  instructionBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true
   },
   inducteeSignBy: [{
@@ -71,10 +67,6 @@ const InductionSchema = new mongoose.Schema({
     required: true
   }],
   geotagging: {
-    type: String,
-    required: true
-  },
-  commentsBox: {
     type: String,
     required: true
   },
