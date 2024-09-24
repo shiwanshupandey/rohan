@@ -46,14 +46,10 @@ const SpecificMeetingSchema = new mongoose.Schema({
       },
       required: true
     },
-    sign: {
-      type: String,
-      validate: {
-        validator: validateImageUrl,
-        message: props => `${props.value} is not a valid image URL!`
-      },
-      required: true
-    }
+    designation: { 
+      type: String, 
+      required: true 
+    },
   }],
   tradeTypes: [{
     type: mongoose.Schema.Types.ObjectId,
