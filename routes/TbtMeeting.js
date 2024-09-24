@@ -4,10 +4,21 @@ const router = express.Router();
 
 // Create a new meeting
 router.post('/', async (req, res) => {
-  const meetingData = req.body;
   try {
+    const meetingData = req.body;
+
+    // Create a new Meeting instance
     const newMeeting = new Meeting(meetingData);
+
+    // Save the meeting
     await newMeeting.save();
+
+    // Calculate attendeesNos and attendeesHours automatically
+    newMeeting.attendeesNos = newMeeting.formFilled.length;
+    newMeeting.attendeesHours = (newMeeting.attendeesNos * 10) / 60;
+
+    await newMeeting.save();
+    
     res.status(201).json(newMeeting);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -17,7 +28,7 @@ router.post('/', async (req, res) => {
 // Get all meetings
 router.get('/', async (req, res) => {
   try {
-    const meetings = await Meeting.find().populate(['projectName', 'attendees', 'typeOfTopic']);
+    const meetings = await Meeting.find().populate(['projectName', 'typeOfTopic']);
     res.json(meetings);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -45,7 +56,13 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Meeting not found' });
     }
 
+    // Update the meeting data
     Object.assign(meeting, req.body);
+
+    // Recalculate attendeesNos and attendeesHours
+    meeting.attendeesNos = meeting.formFilled.length;
+    meeting.attendeesHours = (meeting.attendeesNos * 10) / 60;
+
     await meeting.save();
     res.json(meeting);
   } catch (error) {
