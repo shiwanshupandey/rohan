@@ -62,8 +62,9 @@ const SpecificMeetingSchema = new mongoose.Schema({
       validator: validateImageUrl,
       message: props => `${props.value} is not a valid image URL!`
     },
-    required: true
+    // Remove required: true to make it optional
   },
+
   geotagging: { 
     type: String, 
     required: true 
