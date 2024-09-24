@@ -2,24 +2,22 @@ const express = require('express');
 const Meeting = require('../models/TbtMeeting');
 const router = express.Router();
 
-// Create a new meeting
+// Create a new meeting (Supports posting multiple meetings)
 router.post('/', async (req, res) => {
   try {
     const meetingData = req.body;
 
-    // Create a new Meeting instance
-    const newMeeting = new Meeting(meetingData);
-
-    // Save the meeting
-    await newMeeting.save();
-
-    // Calculate attendeesNos and attendeesHours automatically
-    newMeeting.attendeesNos = newMeeting.formFilled.length;
-    newMeeting.attendeesHours = (newMeeting.attendeesNos * 10) / 60;
-
-    await newMeeting.save();
-    
-    res.status(201).json(newMeeting);
+    // Check if it's an array of data or a single object
+    if (Array.isArray(meetingData)) {
+      // Handle multiple meetings
+      const newMeetings = await Meeting.insertMany(meetingData);
+      res.status(201).json(newMeetings);
+    } else {
+      // Handle a single meeting
+      const newMeeting = new Meeting(meetingData);
+      await newMeeting.save();
+      res.status(201).json(newMeeting);
+    }
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -38,8 +36,8 @@ router.get('/', async (req, res) => {
 // Get a single meeting by ID
 router.get('/:id', async (req, res) => {
   try {
-    const meeting = await Meeting.findById(req.params.id);
-    if (meeting == null) {
+    const meeting = await Meeting.findById(req.params.id).populate(['projectName', 'typeOfTopic']);
+    if (!meeting) {
       return res.status(404).json({ message: 'Meeting not found' });
     }
     res.json(meeting);
@@ -52,18 +50,12 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const meeting = await Meeting.findById(req.params.id);
-    if (meeting == null) {
+    if (!meeting) {
       return res.status(404).json({ message: 'Meeting not found' });
     }
 
-    // Update the meeting data
-    Object.assign(meeting, req.body);
-
-    // Recalculate attendeesNos and attendeesHours
-    meeting.attendeesNos = meeting.formFilled.length;
-    meeting.attendeesHours = (meeting.attendeesNos * 10) / 60;
-
-    await meeting.save();
+    Object.assign(meeting, req.body); // Update fields
+    await meeting.save(); // Save the updated meeting
     res.json(meeting);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -74,7 +66,7 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const meeting = await Meeting.findByIdAndDelete(req.params.id);
-    if (meeting == null) {
+    if (!meeting) {
       return res.status(404).json({ message: 'Meeting not found' });
     }
     res.json({ message: 'Meeting deleted' });
