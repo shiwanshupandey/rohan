@@ -1,23 +1,7 @@
 const express = require('express');
 const SpecificMeeting = require('../models/SpecificMeeting');
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
 
-// Set up Multer storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}${path.extname(file.originalname)}`);
-  }
-});
-
-// Initialize Multer with the storage configuration
-const upload = multer({ storage });
-
-// Create a new SpecificMeeting
 // Create a new SpecificMeeting
 router.post('/', async (req, res) => {
   try {
@@ -29,14 +13,14 @@ router.post('/', async (req, res) => {
       attendees, 
       attendeesName, 
       instructionBy, 
-      documentaryEvidencePhoto, // Now expecting a URL
+      documentaryEvidencePhoto, 
       geotagging, 
       commentsBox 
     } = req.body;
 
     // Validate the URL for the photo
-    if (!documentaryEvidencePhoto || !isValidUrl(documentaryEvidencePhoto)) {
-      return res.status(400).json({ message: 'Documentary evidence photo must be a valid URL.' });
+    if (!validateImageUrl(documentaryEvidencePhoto)) {
+      return res.status(400).json({ message: 'Invalid documentary evidence photo URL.' });
     }
 
     const newSpecificMeeting = new SpecificMeeting({
@@ -81,9 +65,11 @@ router.put('/:id', async (req, res) => {
     if (geotagging) meeting.geotagging = geotagging;
     if (commentsBox) meeting.commentsBox = commentsBox;
 
-    // Validate and update the URL for the photo
-    if (documentaryEvidencePhoto && isValidUrl(documentaryEvidencePhoto)) {
+    // Validate the URL for the photo
+    if (documentaryEvidencePhoto && validateImageUrl(documentaryEvidencePhoto)) {
       meeting.documentaryEvidencePhoto = documentaryEvidencePhoto;
+    } else {
+      return res.status(400).json({ message: 'Invalid documentary evidence photo URL.' });
     }
 
     await meeting.save();
@@ -93,16 +79,15 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-
 // Get all SpecificMeetings
 router.get('/', async (req, res) => {
   try {
     const meetings = await SpecificMeeting.find()
       .populate(['projectName', 'typeOfTopic', 'instructionBy'])
-      .lean() // .lean() ensures that virtuals are included properly in the response
+      .lean()
       .exec();
 
-    res.json(meetings); // Automatically includes attendance and attendanceHours
+    res.json(meetings);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -113,20 +98,18 @@ router.get('/:id', async (req, res) => {
   try {
     const meeting = await SpecificMeeting.findById(req.params.id)
       .populate(['projectName', 'typeOfTopic', 'instructionBy'])
-      .lean() // Ensure virtual fields are included
+      .lean()
       .exec();
 
     if (!meeting) {
       return res.status(404).json({ message: 'SpecificMeeting not found' });
     }
 
-    res.json(meeting);  // Automatically includes attendance and attendanceHours
+    res.json(meeting);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
-
-
 
 // Delete a SpecificMeeting by ID
 router.delete('/:id', async (req, res) => {
@@ -140,5 +123,11 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+// Function to validate image URLs
+const validateImageUrl = url => {
+  const regex = /\.(jpeg|jpg|gif|png|svg|webp)$/;
+  return regex.test(url);
+};
 
 module.exports = router;
