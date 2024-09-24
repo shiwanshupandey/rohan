@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
 // Initialize Multer with the storage configuration
 const upload = multer({ storage });
 
-router.post('/', upload.single('documentaryEvidencePhoto'), async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const {
       projectName,
@@ -28,19 +28,12 @@ router.post('/', upload.single('documentaryEvidencePhoto'), async (req, res) => 
       tradeTypes,
       subContractorName,
       typeOfTopic,
+      documentaryEvidencePhoto,  // This is now treated as a URL string
       AnyOthers,
       instructionBy,
       inducteeSignBy,
       geotagging
     } = req.body;
-
-    // If using file upload, assign the path to documentaryEvidencePhoto
-    const documentaryEvidencePhoto = req.file ? req.file.path : null;
-
-    // Validate required fields
-    if (!documentaryEvidencePhoto) {
-      return res.status(400).json({ error: "documentaryEvidencePhoto is required" });
-    }
 
     // Create a new induction record
     const newInduction = new Induction({
@@ -66,6 +59,7 @@ router.post('/', upload.single('documentaryEvidencePhoto'), async (req, res) => 
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 // Get all inductions
