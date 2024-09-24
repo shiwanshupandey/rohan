@@ -25,15 +25,14 @@ router.post('/', async (req, res) => {
       time,
       inductees,
       inducteesName,
+      tradeTypes,
       subContractorName,
       typeOfTopic,
-      tradeTypes,
-      instructionBy,
       documentaryEvidencePhoto,
-      inductedSignBy,
+      AnyOthers,
+      instructionBy,
       inducteeSignBy,
-      geotagging,
-      commentsBox
+      geotagging
     } = req.body;
 
     // Validate the required fields
@@ -48,15 +47,14 @@ router.post('/', async (req, res) => {
       time,
       inductees,
       inducteesName,
+      tradeTypes,
       subContractorName,
       typeOfTopic,
-      tradeTypes,
-      instructionBy,
       documentaryEvidencePhoto,
-      inductedSignBy,
+      AnyOthers,
+      instructionBy,
       inducteeSignBy,
-      geotagging,
-      commentsBox
+      geotagging
     });
 
     await newInduction.save();
@@ -89,69 +87,6 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
-// Update an induction by ID
-// Update an induction by ID
-// router.put('/:id', upload.fields([
-//   { name: 'documentaryEvidencePhoto' },
-//   { name: 'inductedSignBy' },
-//   { name: 'inducteeSignBy' }
-// ]), async (req, res) => {
-//   try {
-//     const induction = await Induction.findById(req.params.id);
-//     if (!induction) {
-//       return res.status(404).json({ message: 'Induction not found' });
-//     }
-
-//     // Log files and request body to debug
-//     console.log('Files:', req.files);
-//     console.log('Body:', req.body);
-
-//     const {
-//       projectName,
-//       date,
-//       time,
-//       inductees,
-//       inducteesName,
-//       subContractorName,
-//       typeOfTopic,
-//       tradeTypes,
-//       instructionBy,
-//       geotagging,
-//       commentsBox
-//     } = req.body;
-
-//     // Check and update file fields
-//     if (req.files && req.files.documentaryEvidencePhoto) {
-//       induction.documentaryEvidencePhoto = req.files.documentaryEvidencePhoto.map(file => file.filename);
-//     }
-//     if (req.files && req.files.inductedSignBy) {
-//       induction.inductedSignBy = req.files.inductedSignBy.map(file => file.filename);
-//     }
-//     if (req.files && req.files.inducteeSignBy) {
-//       induction.inducteeSignBy = req.files.inducteeSignBy.map(file => file.filename);
-//     }
-
-//     // Update other fields
-//     induction.projectName = projectName;
-//     induction.date = date;
-//     induction.time = time;
-//     induction.inductees = inductees;
-//     induction.inducteesName = inducteesName;
-//     induction.subContractorName = subContractorName;
-//     induction.typeOfTopic = typeOfTopic;
-//     induction.tradeTypes = tradeTypes;
-//     induction.instructionBy = instructionBy;
-//     induction.geotagging = geotagging;
-//     induction.commentsBox = commentsBox;
-
-//     await induction.save();
-//     res.json(induction);
-//   } catch (error) {
-//     console.error('Error:', error);
-//     res.status(400).json({ message: error.message });
-//   }
-// });
 
 
 router.put('/:id', async (req, res) => {
