@@ -26,7 +26,7 @@ const MeetingSchema = new mongoose.Schema({
     required: true
   },
   formFilled: [{
-    name: { type: String, required: true },  // New name field
+    name: { type: String, required: true },
     signature: { 
       type: String, 
       validate: {
@@ -36,15 +36,6 @@ const MeetingSchema = new mongoose.Schema({
       required: true 
     }
   }],
-  attendeesNos: { 
-    type: Number, 
-    required: true,
-    default: 0  // Automatically calculated based on formFilled length
-  },
-  attendeesHours: { 
-    type: Number, 
-    default: 0  // Automatically calculated field based on attendeesNos
-  },
   documentaryEvidencePhoto: { 
     type: String,
     validate: {
