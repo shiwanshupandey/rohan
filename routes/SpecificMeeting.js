@@ -48,7 +48,7 @@ router.post('/', upload.single('documentaryEvidencePhoto'), async (req, res) => 
     });
 
     await newSpecificMeeting.save();
-    res.status(201).json(newSpecificMeeting);
+    res.status(201).json(newSpecificMeeting);  // Will include attendance and attendanceHours virtual fields
   } catch (error) {
     console.error('Error:', error);
     res.status(400).json({ message: error.message });
@@ -59,8 +59,11 @@ router.post('/', upload.single('documentaryEvidencePhoto'), async (req, res) => 
 router.get('/', async (req, res) => {
   try {
     const meetings = await SpecificMeeting.find()
-      .populate(['projectName', 'typeOfTopic', 'instructionBy']);
-    res.json(meetings);
+      .populate(['projectName', 'typeOfTopic', 'instructionBy'])
+      .lean() // .lean() ensures that virtuals are included properly in the response
+      .exec();
+
+    res.json(meetings); // Automatically includes attendance and attendanceHours
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -70,11 +73,15 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const meeting = await SpecificMeeting.findById(req.params.id)
-      .populate(['projectName', 'typeOfTopic', 'instructionBy']);
+      .populate(['projectName', 'typeOfTopic', 'instructionBy'])
+      .lean() // Ensure virtual fields are included
+      .exec();
+
     if (!meeting) {
       return res.status(404).json({ message: 'SpecificMeeting not found' });
     }
-    res.json(meeting);
+
+    res.json(meeting);  // Automatically includes attendance and attendanceHours
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -108,7 +115,7 @@ router.put('/:id', upload.single('documentaryEvidencePhoto'), async (req, res) =
     }
 
     await meeting.save();
-    res.json(meeting);
+    res.json(meeting);  // Automatically includes attendance and attendanceHours
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
