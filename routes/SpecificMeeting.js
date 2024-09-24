@@ -32,7 +32,12 @@ router.post('/', upload.single('documentaryEvidencePhoto'), async (req, res) => 
       commentsBox 
     } = req.body;
 
-    const documentaryEvidencePhoto = req.file ? req.file.path : null;
+    // Check if a file is uploaded
+    if (!req.file) {
+      return res.status(400).json({ message: 'Documentary evidence photo is required.' });
+    }
+
+    const documentaryEvidencePhoto = req.file.path;
 
     const newSpecificMeeting = new SpecificMeeting({
       projectName,
@@ -48,12 +53,46 @@ router.post('/', upload.single('documentaryEvidencePhoto'), async (req, res) => 
     });
 
     await newSpecificMeeting.save();
-    res.status(201).json(newSpecificMeeting);  // Will include attendance and attendanceHours virtual fields
+    res.status(201).json(newSpecificMeeting);
   } catch (error) {
     console.error('Error:', error);
     res.status(400).json({ message: error.message });
   }
 });
+
+// Update a SpecificMeeting by ID
+router.put('/:id', upload.single('documentaryEvidencePhoto'), async (req, res) => {
+  try {
+    const meeting = await SpecificMeeting.findById(req.params.id);
+    if (!meeting) {
+      return res.status(404).json({ message: 'SpecificMeeting not found' });
+    }
+
+    const { projectName, date, time, typeOfTopic, attendees, attendeesName, instructionBy, geotagging, commentsBox } = req.body;
+
+    // Update the fields only if they are provided
+    if (projectName) meeting.projectName = projectName;
+    if (date) meeting.date = date;
+    if (time) meeting.time = time;
+    if (typeOfTopic) meeting.typeOfTopic = typeOfTopic;
+    if (attendees) meeting.attendees = attendees;
+    if (attendeesName) meeting.attendeesName = attendeesName;
+    if (instructionBy) meeting.instructionBy = instructionBy;
+    if (geotagging) meeting.geotagging = geotagging;
+    if (commentsBox) meeting.commentsBox = commentsBox;
+
+    // Check if a file is uploaded
+    if (req.file) {
+      meeting.documentaryEvidencePhoto = req.file.path;
+    }
+
+    await meeting.save();
+    res.json(meeting);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 
 // Get all SpecificMeetings
 router.get('/', async (req, res) => {
@@ -87,39 +126,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Update a SpecificMeeting by ID
-router.put('/:id', upload.single('documentaryEvidencePhoto'), async (req, res) => {
-  try {
-    const meeting = await SpecificMeeting.findById(req.params.id);
-    if (!meeting) {
-      return res.status(404).json({ message: 'SpecificMeeting not found' });
-    }
 
-    // Destructure the request body fields
-    const { projectName, date, time, typeOfTopic, attendees, attendeesName, instructionBy, geotagging, commentsBox } = req.body;
-
-    // Update the fields only if they are provided
-    if (projectName) meeting.projectName = projectName;
-    if (date) meeting.date = date;
-    if (time) meeting.time = time;
-    if (typeOfTopic) meeting.typeOfTopic = typeOfTopic;
-    if (attendees) meeting.attendees = attendees;
-    if (attendeesName) meeting.attendeesName = attendeesName;
-    if (instructionBy) meeting.instructionBy = instructionBy;
-    if (geotagging) meeting.geotagging = geotagging;
-    if (commentsBox) meeting.commentsBox = commentsBox;
-
-    // Handle the documentary evidence photo file upload
-    if (req.file) {
-      meeting.documentaryEvidencePhoto = req.file.path; // Store the file path
-    }
-
-    await meeting.save();
-    res.json(meeting);  // Automatically includes attendance and attendanceHours
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
 
 // Delete a SpecificMeeting by ID
 router.delete('/:id', async (req, res) => {
