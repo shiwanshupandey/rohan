@@ -18,7 +18,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Create a new SpecificMeeting
-router.post('/', upload.single('documentaryEvidencePhoto'), async (req, res) => {
+// Create a new SpecificMeeting
+router.post('/', async (req, res) => {
   try {
     const { 
       projectName, 
@@ -28,16 +29,15 @@ router.post('/', upload.single('documentaryEvidencePhoto'), async (req, res) => 
       attendees, 
       attendeesName, 
       instructionBy, 
+      documentaryEvidencePhoto, // Now expecting a URL
       geotagging, 
       commentsBox 
     } = req.body;
 
-    // Check if a file is uploaded
-    if (!req.file) {
-      return res.status(400).json({ message: 'Documentary evidence photo is required.' });
+    // Validate the URL for the photo
+    if (!documentaryEvidencePhoto || !isValidUrl(documentaryEvidencePhoto)) {
+      return res.status(400).json({ message: 'Documentary evidence photo must be a valid URL.' });
     }
-
-    const documentaryEvidencePhoto = req.file.path;
 
     const newSpecificMeeting = new SpecificMeeting({
       projectName,
@@ -61,14 +61,14 @@ router.post('/', upload.single('documentaryEvidencePhoto'), async (req, res) => 
 });
 
 // Update a SpecificMeeting by ID
-router.put('/:id', upload.single('documentaryEvidencePhoto'), async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const meeting = await SpecificMeeting.findById(req.params.id);
     if (!meeting) {
       return res.status(404).json({ message: 'SpecificMeeting not found' });
     }
 
-    const { projectName, date, time, typeOfTopic, attendees, attendeesName, instructionBy, geotagging, commentsBox } = req.body;
+    const { projectName, date, time, typeOfTopic, attendees, attendeesName, instructionBy, documentaryEvidencePhoto, geotagging, commentsBox } = req.body;
 
     // Update the fields only if they are provided
     if (projectName) meeting.projectName = projectName;
@@ -81,9 +81,9 @@ router.put('/:id', upload.single('documentaryEvidencePhoto'), async (req, res) =
     if (geotagging) meeting.geotagging = geotagging;
     if (commentsBox) meeting.commentsBox = commentsBox;
 
-    // Check if a file is uploaded
-    if (req.file) {
-      meeting.documentaryEvidencePhoto = req.file.path;
+    // Validate and update the URL for the photo
+    if (documentaryEvidencePhoto && isValidUrl(documentaryEvidencePhoto)) {
+      meeting.documentaryEvidencePhoto = documentaryEvidencePhoto;
     }
 
     await meeting.save();
