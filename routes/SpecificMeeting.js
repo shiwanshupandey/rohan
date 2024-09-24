@@ -18,25 +18,35 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Create a new SpecificMeeting
-router.post('/', async (req, res) => {
+router.post('/', upload.single('documentaryEvidencePhoto'), async (req, res) => {
   try {
-    const { projectName, date, time, topicName, typeOfTopic, attendees, inducteesName, tradeTypes, instructionBy, documentaryEvidencePhoto, traineeSignBy, trainingSignBy, geotagging, commentsBox } = req.body;
+    const { 
+      projectName, 
+      date, 
+      time, 
+      typeOfTopic, 
+      attendees, 
+      attendeesName, 
+      instructionBy, 
+      geotagging, 
+      commentsBox 
+    } = req.body;
+
+    const documentaryEvidencePhoto = req.file ? req.file.path : null;
+
     const newSpecificMeeting = new SpecificMeeting({
       projectName,
       date,
       time,
-      topicName,
       typeOfTopic,
       attendees,
-      inducteesName,
-      tradeTypes,
+      attendeesName,
       instructionBy,
       documentaryEvidencePhoto,
-      traineeSignBy,
-      trainingSignBy,
       geotagging,
       commentsBox
     });
+
     await newSpecificMeeting.save();
     res.status(201).json(newSpecificMeeting);
   } catch (error) {
@@ -48,7 +58,8 @@ router.post('/', async (req, res) => {
 // Get all SpecificMeetings
 router.get('/', async (req, res) => {
   try {
-    const meetings = await SpecificMeeting.find().populate(['projectName', 'typeOfTopic', 'tradeTypes', 'instructionBy']);
+    const meetings = await SpecificMeeting.find()
+      .populate(['projectName', 'typeOfTopic', 'instructionBy']);
     res.json(meetings);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -58,8 +69,9 @@ router.get('/', async (req, res) => {
 // Get a single SpecificMeeting by ID
 router.get('/:id', async (req, res) => {
   try {
-    const meeting = await SpecificMeeting.findById(req.params.id).populate(['projectName', 'typeOfTopic', 'tradeTypes', 'instructionBy']);
-    if (meeting == null) {
+    const meeting = await SpecificMeeting.findById(req.params.id)
+      .populate(['projectName', 'typeOfTopic', 'instructionBy']);
+    if (!meeting) {
       return res.status(404).json({ message: 'SpecificMeeting not found' });
     }
     res.json(meeting);
@@ -68,7 +80,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-/// Update a SpecificMeeting by ID
+// Update a SpecificMeeting by ID
 router.put('/:id', upload.single('documentaryEvidencePhoto'), async (req, res) => {
   try {
     const meeting = await SpecificMeeting.findById(req.params.id);
@@ -76,27 +88,24 @@ router.put('/:id', upload.single('documentaryEvidencePhoto'), async (req, res) =
       return res.status(404).json({ message: 'SpecificMeeting not found' });
     }
 
-    // Update only the fields that are provided in the request body
-    const { projectName, date, time, topicName, typeOfTopic, attendees, inducteesName, tradeTypes, instructionBy, traineeSignBy, trainingSignBy, geotagging, commentsBox } = req.body;
+    // Destructure the request body fields
+    const { projectName, date, time, typeOfTopic, attendees, attendeesName, instructionBy, geotagging, commentsBox } = req.body;
 
-    if (req.file) {
-      meeting.documentaryEvidencePhoto = req.file.filename; // Update the file if provided
-    }
-
-    // Only update fields that exist in the request body, leave others unchanged
+    // Update the fields only if they are provided
     if (projectName) meeting.projectName = projectName;
     if (date) meeting.date = date;
     if (time) meeting.time = time;
-    if (topicName) meeting.topicName = topicName;
     if (typeOfTopic) meeting.typeOfTopic = typeOfTopic;
     if (attendees) meeting.attendees = attendees;
-    if (inducteesName) meeting.inducteesName = inducteesName;
-    if (tradeTypes) meeting.tradeTypes = tradeTypes;
+    if (attendeesName) meeting.attendeesName = attendeesName;
     if (instructionBy) meeting.instructionBy = instructionBy;
-    if (traineeSignBy) meeting.traineeSignBy = traineeSignBy;
-    if (trainingSignBy) meeting.trainingSignBy = trainingSignBy;
     if (geotagging) meeting.geotagging = geotagging;
     if (commentsBox) meeting.commentsBox = commentsBox;
+
+    // Handle the documentary evidence photo file upload
+    if (req.file) {
+      meeting.documentaryEvidencePhoto = req.file.path; // Store the file path
+    }
 
     await meeting.save();
     res.json(meeting);
@@ -109,7 +118,7 @@ router.put('/:id', upload.single('documentaryEvidencePhoto'), async (req, res) =
 router.delete('/:id', async (req, res) => {
   try {
     const meeting = await SpecificMeeting.findByIdAndDelete(req.params.id);
-    if (meeting == null) {
+    if (!meeting) {
       return res.status(404).json({ message: 'SpecificMeeting not found' });
     }
     res.json({ message: 'SpecificMeeting deleted' });
