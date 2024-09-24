@@ -1,23 +1,16 @@
 const express = require('express');
-const Meeting = require('../models/TbtMeeting');
+const SpecificMeeting = require('../models/SpecificMeeting'); // Assuming the model is in models folder
 const router = express.Router();
 
-// Create a new meeting (Supports posting multiple meetings)
+// Create new meeting(s) - Supports posting multiple records
 router.post('/', async (req, res) => {
   try {
-    const meetingData = req.body;
+    const meetingData = Array.isArray(req.body) ? req.body : [req.body]; // Support single or multiple entries
 
-    // Check if it's an array of data or a single object
-    if (Array.isArray(meetingData)) {
-      // Handle multiple meetings
-      const newMeetings = await Meeting.insertMany(meetingData);
-      res.status(201).json(newMeetings);
-    } else {
-      // Handle a single meeting
-      const newMeeting = new Meeting(meetingData);
-      await newMeeting.save();
-      res.status(201).json(newMeeting);
-    }
+    // Create multiple meetings
+    const newMeetings = await SpecificMeeting.insertMany(meetingData);
+
+    res.status(201).json(newMeetings);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -26,7 +19,7 @@ router.post('/', async (req, res) => {
 // Get all meetings
 router.get('/', async (req, res) => {
   try {
-    const meetings = await Meeting.find().populate(['projectName', 'typeOfTopic']);
+    const meetings = await SpecificMeeting.find().populate(['projectName', 'typeOfTopic', 'instructionBy']);
     res.json(meetings);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -36,7 +29,7 @@ router.get('/', async (req, res) => {
 // Get a single meeting by ID
 router.get('/:id', async (req, res) => {
   try {
-    const meeting = await Meeting.findById(req.params.id).populate(['projectName', 'typeOfTopic']);
+    const meeting = await SpecificMeeting.findById(req.params.id).populate(['projectName', 'typeOfTopic', 'instructionBy']);
     if (!meeting) {
       return res.status(404).json({ message: 'Meeting not found' });
     }
@@ -49,13 +42,14 @@ router.get('/:id', async (req, res) => {
 // Update a meeting by ID
 router.put('/:id', async (req, res) => {
   try {
-    const meeting = await Meeting.findById(req.params.id);
+    const meeting = await SpecificMeeting.findById(req.params.id);
     if (!meeting) {
       return res.status(404).json({ message: 'Meeting not found' });
     }
 
-    Object.assign(meeting, req.body); // Update fields
-    await meeting.save(); // Save the updated meeting
+    // Update the meeting with new data
+    Object.assign(meeting, req.body);
+    await meeting.save();
     res.json(meeting);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -65,7 +59,7 @@ router.put('/:id', async (req, res) => {
 // Delete a meeting by ID
 router.delete('/:id', async (req, res) => {
   try {
-    const meeting = await Meeting.findByIdAndDelete(req.params.id);
+    const meeting = await SpecificMeeting.findByIdAndDelete(req.params.id);
     if (!meeting) {
       return res.status(404).json({ message: 'Meeting not found' });
     }
