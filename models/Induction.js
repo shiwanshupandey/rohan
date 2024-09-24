@@ -58,14 +58,14 @@ const InductionSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  inducteeSignBy: [{
+  inducteeSignBy: {
     type: String,
     validate: {
       validator: validateImageUrl,
       message: props => `${props.value} is not a valid image URL!`
     },
     required: true
-  }],
+  },
   geotagging: {
     type: String,
     required: true
