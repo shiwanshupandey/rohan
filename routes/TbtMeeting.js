@@ -5,7 +5,7 @@ const Meeting = require('../models/TbtMeeting');  // Assuming you have a Meeting
 const fs = require('fs');
 const path = require('path');
 
-const { private_key, client_email } = require('../helper/credentials.json');
+const { private_key, client_email } = require('./credentials.json');
 
 // Initialize the router
 const router = express.Router();
