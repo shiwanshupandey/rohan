@@ -36,7 +36,7 @@ const makeApiRequestWithBackoff = async (apiRequest, retries = 5) => {
       return await apiRequest();
     } catch (error) {
       if (error.response && error.response.status === 429 && i < retries - 1) {
-        const backoffTime = Math.pow(2, i) * 2000; // Increase delay between retries
+        const backoffTime = Math.pow(3, i) * 1000; // More aggressive backoff
         console.log(`Rate-limited. Retrying after ${backoffTime} ms.`);
         await sleep(backoffTime);
       } else {
@@ -45,6 +45,7 @@ const makeApiRequestWithBackoff = async (apiRequest, retries = 5) => {
     }
   }
 };
+
 
 
 // Upload file to Google Drive with retry logic
@@ -75,56 +76,54 @@ const uploadToDrive = async (fileBuffer, fileName, mimeType, folderId = '1A7Xs3s
   });
 };
 
-// Create a new Meeting - POST
-router.post('/', upload.fields([
-  { name: 'documentaryEvidencePhoto', maxCount: 1 },
-  { name: 'formFilledSignature', maxCount: 100 },
-]), async (req, res) => {
+// Respond immediately and handle uploads in the background
+router.post('/', upload.fields([...]), async (req, res) => {
   try {
-    console.log('Files:', req.files);
-    console.log('Body:', req.body);
+    // Respond quickly to the client
+    res.status(202).json({ message: 'Upload in progress' });
 
-    const { projectName, date, time, typeOfTopic, geotagging, commentsBox } = req.body;
-
-    // Upload documentary evidence photo
-    let documentaryEvidencePhotoUrl = null;
-    if (req.files['documentaryEvidencePhoto']) {
-      const photo = req.files['documentaryEvidencePhoto'][0];
-      documentaryEvidencePhotoUrl = await uploadToDrive(photo.buffer, photo.originalname, photo.mimetype);
-    }
-
-    // Process formFilled data
-    const formFilledData = [];
-    for (let i = 0; i < Object.keys(req.body).length; i++) {
-      const nameKey = `formFilled[${i}].name`;
-      const name = req.body[nameKey];
-
-      if (name && req.files.formFilledSignature && req.files.formFilledSignature[i]) {
-        const signature = req.files.formFilledSignature[i];
-        const signatureUrl = await uploadToDrive(signature.buffer, `${name}_signature_${i}.jpg`, signature.mimetype);
-        formFilledData.push({ name, signature: signatureUrl });
-      }
-    }
-
-    // Create new Meeting document
-    const newMeeting = new Meeting({
-      projectName,
-      date,
-      time,
-      typeOfTopic,
-      formFilled: formFilledData,
-      documentaryEvidencePhoto: documentaryEvidencePhotoUrl,
-      geotagging,
-      commentsBox,
-    });
-
-    await newMeeting.save();
-    res.status(201).json(newMeeting);
+    // Handle file uploads in the background
+    processUpload(req.files, req.body);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
+
+// Background processing function
+const processUpload = async (files, body) => {
+  try {
+    const { projectName, date, time, typeOfTopic, geotagging, commentsBox } = body;
+
+    // Perform your uploads here (similar to your original logic)
+    let documentaryEvidencePhotoUrl = null;
+    if (files['documentaryEvidencePhoto']) {
+      const photo = files['documentaryEvidencePhoto'][0];
+      documentaryEvidencePhotoUrl = await uploadToDrive(photo.buffer, photo.originalname, photo.mimetype);
+    }
+
+    // Process formFilled data and create a new meeting document
+    const formFilledData = [];
+    for (let i = 0; i < Object.keys(body).length; i++) {
+      const nameKey = `formFilled[${i}].name`;
+      const name = body[nameKey];
+      if (name && files.formFilledSignature && files.formFilledSignature[i]) {
+        const signature = files.formFilledSignature[i];
+        const signatureUrl = await uploadToDrive(signature.buffer, `${name}_signature_${i}.jpg`, signature.mimetype);
+        formFilledData.push({ name, signature: signatureUrl });
+      }
+    }
+
+    // Save to MongoDB
+    const newMeeting = new Meeting({
+      projectName, date, time, typeOfTopic, formFilled: formFilledData, documentaryEvidencePhoto: documentaryEvidencePhotoUrl, geotagging, commentsBox,
+    });
+    await newMeeting.save();
+  } catch (err) {
+    console.error('Background upload failed:', err);
+  }
+};
+
 
 // Get all Meetings - GET
 router.get('/', async (req, res) => {
