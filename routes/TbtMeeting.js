@@ -1,12 +1,10 @@
 const express = require('express');
 const { google } = require('googleapis');
 const multer = require('multer');
-const Meeting = require('../models/TbtMeeting');  // Assuming you have a Meeting model
-const { Readable } = require('stream');  // Import stream to convert buffer to stream
-
+const Meeting = require('../models/TbtMeeting');
+const { Readable } = require('stream');
 const { private_key, client_email } = require('./credentials.json');
 
-// Initialize the router
 const router = express.Router();
 
 const oauth2Client = new google.auth.JWT(
@@ -18,52 +16,69 @@ const oauth2Client = new google.auth.JWT(
 
 const drive = google.drive({ version: 'v3', auth: oauth2Client });
 
-// Multer middleware using memory storage (no files saved locally)
+// Multer middleware using memory storage
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Helper function to convert buffer to stream
 const bufferToStream = (buffer) => {
   const stream = new Readable();
   stream.push(buffer);
-  stream.push(null);  // Indicates the end of the stream
+  stream.push(null);
   return stream;
 };
 
-// Helper function to upload file to Google Drive from a buffer
+// Helper function for exponential backoff
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Retry Google API requests using exponential backoff
+const makeApiRequestWithBackoff = async (apiRequest, retries = 5) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await apiRequest();
+    } catch (error) {
+      if (error.response && error.response.status === 429 && i < retries - 1) {
+        const backoffTime = Math.pow(2, i) * 1000;
+        console.log(`Rate-limited. Retrying after ${backoffTime} ms...`);
+        await sleep(backoffTime);
+      } else {
+        throw error;
+      }
+    }
+  }
+};
+
+// Upload file to Google Drive with retry logic
 const uploadToDrive = async (fileBuffer, fileName, mimeType, folderId = '1A7Xs3swAMfH32vzhxd5IazGaL_fZqN1s') => {
   const fileMetadata = {
     name: fileName,
-    parents: [folderId],  // Specify the folder to upload the file to
+    parents: [folderId],
   };
   const media = {
-    mimeType: mimeType,  // MIME type from the uploaded file
-    body: bufferToStream(fileBuffer),  // Use buffer-to-stream conversion
+    mimeType,
+    body: bufferToStream(fileBuffer),
   };
 
-  const driveResponse = await drive.files.create({
-    resource: fileMetadata,
-    media: media,
-    fields: 'id',
-  });
+  return makeApiRequestWithBackoff(async () => {
+    const driveResponse = await drive.files.create({
+      resource: fileMetadata,
+      media: media,
+      fields: 'id',
+    });
 
-  // Set the file as publicly accessible
-  await drive.permissions.create({
-    fileId: driveResponse.data.id,
-    requestBody: {
-      role: 'reader',
-      type: 'anyone',
-    },
-  });
+    // Set file as publicly accessible
+    await drive.permissions.create({
+      fileId: driveResponse.data.id,
+      requestBody: { role: 'reader', type: 'anyone' },
+    });
 
-  // Get the file's public URL
-  const fileUrl = `https://drive.google.com/uc?id=${driveResponse.data.id}&export=download`;
-  return fileUrl;
+    return `https://drive.google.com/uc?id=${driveResponse.data.id}&export=download`;
+  });
 };
 
 // Create a new Meeting - POST
 router.post('/', upload.fields([
   { name: 'documentaryEvidencePhoto', maxCount: 1 },
-  { name: 'formFilledSignature', maxCount: 100 }  // Multiple signatures can be uploaded
+  { name: 'formFilledSignature', maxCount: 100 },
 ]), async (req, res) => {
   try {
     console.log('Files:', req.files);
@@ -71,48 +86,38 @@ router.post('/', upload.fields([
 
     const { projectName, date, time, typeOfTopic, geotagging, commentsBox } = req.body;
 
-    // Handle file uploads for documentary evidence
+    // Upload documentary evidence photo
     let documentaryEvidencePhotoUrl = null;
     if (req.files['documentaryEvidencePhoto']) {
-      const photoBuffer = req.files['documentaryEvidencePhoto'][0].buffer;
-      const photoName = req.files['documentaryEvidencePhoto'][0].originalname;
-      const mimeType = req.files['documentaryEvidencePhoto'][0].mimetype;
-      documentaryEvidencePhotoUrl = await uploadToDrive(photoBuffer, photoName, mimeType);
+      const photo = req.files['documentaryEvidencePhoto'][0];
+      documentaryEvidencePhotoUrl = await uploadToDrive(photo.buffer, photo.originalname, photo.mimetype);
     }
 
-    // Process the formFilled array
+    // Process formFilled data
     const formFilledData = [];
-
     for (let i = 0; i < Object.keys(req.body).length; i++) {
       const nameKey = `formFilled[${i}].name`;
       const name = req.body[nameKey];
 
       if (name && req.files.formFilledSignature && req.files.formFilledSignature[i]) {
-        const signatureBuffer = req.files.formFilledSignature[i].buffer;
-        const signatureName = `${name}_signature_${i}.jpg`;  // You can adjust the file extension as needed
-        const mimeType = req.files.formFilledSignature[i].mimetype;
-
-        // Upload the signature image to Google Drive
-        const signatureUrl = await uploadToDrive(signatureBuffer, signatureName, mimeType);
-
-        // Push name and signature URL into formFilledData
+        const signature = req.files.formFilledSignature[i];
+        const signatureUrl = await uploadToDrive(signature.buffer, `${name}_signature_${i}.jpg`, signature.mimetype);
         formFilledData.push({ name, signature: signatureUrl });
       }
     }
 
-    // Create a new Meeting document
+    // Create new Meeting document
     const newMeeting = new Meeting({
       projectName,
       date,
       time,
       typeOfTopic,
-      formFilled: formFilledData,  // Store names and signature URLs
+      formFilled: formFilledData,
       documentaryEvidencePhoto: documentaryEvidencePhotoUrl,
       geotagging,
-      commentsBox
+      commentsBox,
     });
 
-    // Save the new Meeting document to MongoDB
     await newMeeting.save();
     res.status(201).json(newMeeting);
   } catch (err) {
@@ -120,8 +125,6 @@ router.post('/', upload.fields([
     res.status(500).json({ error: err.message });
   }
 });
-
-
 
 // Get all Meetings - GET
 router.get('/', async (req, res) => {
@@ -147,7 +150,7 @@ router.get('/:id', async (req, res) => {
 // Update a Meeting by ID - PUT
 router.put('/:id', upload.fields([
   { name: 'documentaryEvidencePhoto', maxCount: 1 },
-  { name: 'formFilledSignature', maxCount: 100 }
+  { name: 'formFilledSignature', maxCount: 100 },
 ]), async (req, res) => {
   try {
     const { projectName, date, time, typeOfTopic, formFilled, geotagging, commentsBox } = req.body;
@@ -155,26 +158,27 @@ router.put('/:id', upload.fields([
     const meeting = await Meeting.findById(req.params.id);
     if (!meeting) return res.status(404).json({ error: 'Meeting not found' });
 
-    meeting.projectName = projectName;
-    meeting.date = date;
-    meeting.time = time;
-    meeting.typeOfTopic = typeOfTopic;
-    meeting.geotagging = geotagging;
-    meeting.commentsBox = commentsBox;
+    // Update meeting fields
+    meeting.projectName = projectName || meeting.projectName;
+    meeting.date = date || meeting.date;
+    meeting.time = time || meeting.time;
+    meeting.typeOfTopic = typeOfTopic || meeting.typeOfTopic;
+    meeting.geotagging = geotagging || meeting.geotagging;
+    meeting.commentsBox = commentsBox || meeting.commentsBox;
 
-    // Handle file uploads for signature and documentary evidence
-    meeting.documentaryEvidencePhoto = req.files.documentaryEvidencePhoto 
-      ? req.files.documentaryEvidencePhoto[0].filename 
-      : meeting.documentaryEvidencePhoto;
+    // Handle file uploads for signatures and documentary evidence
+    if (req.files['documentaryEvidencePhoto']) {
+      const photo = req.files['documentaryEvidencePhoto'][0];
+      meeting.documentaryEvidencePhoto = await uploadToDrive(photo.buffer, photo.originalname, photo.mimetype);
+    }
 
-    const formFilledData = JSON.parse(formFilled).map((entry, index) => ({
+    const updatedFormFilledData = JSON.parse(formFilled).map((entry, index) => ({
       name: entry.name,
-      signature: req.files.formFilledSignature && req.files.formFilledSignature[index] 
-        ? req.files.formFilledSignature[index].filename 
-        : entry.signature  // Keep existing signature if not replaced
+      signature: req.files.formFilledSignature && req.files.formFilledSignature[index]
+        ? req.files.formFilledSignature[index].filename
+        : entry.signature,  // Keep existing signature if not replaced
     }));
-
-    meeting.formFilled = formFilledData;
+    meeting.formFilled = updatedFormFilledData;
 
     await meeting.save();
     res.json(meeting);
