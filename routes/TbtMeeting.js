@@ -4,7 +4,7 @@ const multer = require('multer');
 const Meeting = require('../models/TbtMeeting');  // Assuming you have a Meeting model
 const { Readable } = require('stream');  // Import stream to convert buffer to stream
 
-const { private_key, client_email } = require('../helper/credentials.json');
+const { private_key, client_email } = require('./credentials.json');
 
 // Initialize the router
 const router = express.Router();
