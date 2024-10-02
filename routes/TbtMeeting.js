@@ -27,27 +27,7 @@ const bufferToStream = (buffer) => {
   return stream;
 };
 
-// Helper function for exponential backoff
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// Retry Google API requests using exponential backoff
-const makeApiRequestWithBackoff = async (apiRequest, retries = 5) => {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await apiRequest();
-    } catch (error) {
-      if (error.response && error.response.status === 429 && i < retries - 1) {
-        const backoffTime = Math.pow(2, i) * 1000;
-        console.log(`Rate-limited. Retrying after ${backoffTime} ms...`);
-        await sleep(backoffTime);
-      } else {
-        throw error;
-      }
-    }
-  }
-};
-
-// Upload file to Google Drive with retry logic
+// Upload file to Google Drive without retry logic
 const uploadToDrive = async (fileBuffer, fileName, mimeType, folderId = '1A7Xs3swAMfH32vzhxd5IazGaL_fZqN1s') => {
   const fileMetadata = {
     name: fileName,
@@ -58,21 +38,19 @@ const uploadToDrive = async (fileBuffer, fileName, mimeType, folderId = '1A7Xs3s
     body: bufferToStream(fileBuffer),
   };
 
-  return makeApiRequestWithBackoff(async () => {
-    const driveResponse = await drive.files.create({
-      resource: fileMetadata,
-      media: media,
-      fields: 'id',
-    });
-
-    // Set file as publicly accessible
-    await drive.permissions.create({
-      fileId: driveResponse.data.id,
-      requestBody: { role: 'reader', type: 'anyone' },
-    });
-
-    return `https://drive.google.com/uc?id=${driveResponse.data.id}&export=download`;
+  const driveResponse = await drive.files.create({
+    resource: fileMetadata,
+    media: media,
+    fields: 'id',
   });
+
+  // Set file as publicly accessible
+  await drive.permissions.create({
+    fileId: driveResponse.data.id,
+    requestBody: { role: 'reader', type: 'anyone' },
+  });
+
+  return `https://drive.google.com/uc?id=${driveResponse.data.id}&export=download`;
 };
 
 // Create a new Meeting - POST
