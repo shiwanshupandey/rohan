@@ -2,10 +2,9 @@ const express = require('express');
 const { google } = require('googleapis');
 const multer = require('multer');
 const Meeting = require('../models/TbtMeeting');  // Assuming you have a Meeting model
-const fs = require('fs');
-const path = require('path');
+const { Readable } = require('stream');  // Import stream to convert buffer to stream
 
-const { private_key, client_email } = require('./credentials.json');
+const { private_key, client_email } = require('../helper/credentials.json');
 
 // Initialize the router
 const router = express.Router();
@@ -19,18 +18,26 @@ const oauth2Client = new google.auth.JWT(
 
 const drive = google.drive({ version: 'v3', auth: oauth2Client });
 
-// Multer middleware for handling file uploads
-const upload = multer({ dest: 'uploads/' });
+// Multer middleware using memory storage (no files saved locally)
+const upload = multer({ storage: multer.memoryStorage() });
 
-// Helper function to upload file to Google Drive within a specific folder
-const uploadToDrive = async (filePath, fileName, folderId = '1A7Xs3swAMfH32vzhxd5IazGaL_fZqN1s') => {
+// Helper function to convert buffer to stream
+const bufferToStream = (buffer) => {
+  const stream = new Readable();
+  stream.push(buffer);
+  stream.push(null);  // Indicates the end of the stream
+  return stream;
+};
+
+// Helper function to upload file to Google Drive from a buffer
+const uploadToDrive = async (fileBuffer, fileName, mimeType, folderId = '1A7Xs3swAMfH32vzhxd5IazGaL_fZqN1s') => {
   const fileMetadata = {
     name: fileName,
-    parents: [folderId]  // Specify the folder to upload the file to
+    parents: [folderId],  // Specify the folder to upload the file to
   };
   const media = {
-    mimeType: 'image/jpeg',  // Adjust MIME type if different
-    body: fs.createReadStream(filePath),
+    mimeType: mimeType,  // MIME type from the uploaded file
+    body: bufferToStream(fileBuffer),  // Use buffer-to-stream conversion
   };
 
   const driveResponse = await drive.files.create({
@@ -66,13 +73,11 @@ router.post('/', upload.fields([
 
     // Handle file uploads for documentary evidence
     let documentaryEvidencePhotoUrl = null;
-    if (req.files.documentaryEvidencePhoto) {
-      const photoPath = req.files.documentaryEvidencePhoto[0].path;
-      const photoName = req.files.documentaryEvidencePhoto[0].originalname;
-      documentaryEvidencePhotoUrl = await uploadToDrive(photoPath, photoName);
-
-      // Remove file from server after upload to Drive
-      fs.unlinkSync(photoPath);
+    if (req.files['documentaryEvidencePhoto']) {
+      const photoBuffer = req.files['documentaryEvidencePhoto'][0].buffer;
+      const photoName = req.files['documentaryEvidencePhoto'][0].originalname;
+      const mimeType = req.files['documentaryEvidencePhoto'][0].mimetype;
+      documentaryEvidencePhotoUrl = await uploadToDrive(photoBuffer, photoName, mimeType);
     }
 
     // Process the formFilled array
@@ -83,16 +88,12 @@ router.post('/', upload.fields([
       const name = req.body[nameKey];
 
       if (name && req.files.formFilledSignature && req.files.formFilledSignature[i]) {
-        const signaturePath = req.files.formFilledSignature[i].path;
-        
-        // Use the formFilled name as part of the file name to help with sorting
+        const signatureBuffer = req.files.formFilledSignature[i].buffer;
         const signatureName = `${name}_signature_${i}.jpg`;  // You can adjust the file extension as needed
-        
-        // Upload the signature image to Google Drive
-        const signatureUrl = await uploadToDrive(signaturePath, signatureName);
+        const mimeType = req.files.formFilledSignature[i].mimetype;
 
-        // Remove file from server after upload to Drive
-        fs.unlinkSync(signaturePath);
+        // Upload the signature image to Google Drive
+        const signatureUrl = await uploadToDrive(signatureBuffer, signatureName, mimeType);
 
         // Push name and signature URL into formFilledData
         formFilledData.push({ name, signature: signatureUrl });
@@ -119,6 +120,7 @@ router.post('/', upload.fields([
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 // Get all Meetings - GET
