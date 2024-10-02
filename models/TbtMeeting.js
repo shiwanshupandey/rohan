@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 // Function to validate image URLs
 const validateImageUrl = url => {
-  const regex = /\.(jpeg|jpg|gif|png|svg|webp)$/;
+  const regex = /\.(jpeg|jpg|gif|png|svg|webp)$/i;  // Case-insensitive check for image formats
   return regex.test(url);
 };
 
@@ -25,25 +25,15 @@ const MeetingSchema = new mongoose.Schema({
     ref: 'Topic',
     required: true
   },
+  documentaryEvidencePhoto: {
+    type: String  // No custom validation, just store the string
+  },
   formFilled: [{
-    name: { type: String, required: true },
-    signature: { 
-      type: String, 
-      validate: {
-        validator: validateImageUrl,  // Validate the signature URL
-        message: props => `${props.value} is not a valid image URL!`
-      },
-      required: true 
+    name: String,
+    signature: {
+      type: String  // No custom validation, just store the string
     }
   }],
-  documentaryEvidencePhoto: { 
-    type: String,
-    validate: {
-      validator: validateImageUrl,
-      message: props => `${props.value} is not a valid image URL!`
-    },
-    required: true
-  },
   geotagging: { 
     type: String, 
     required: true 
