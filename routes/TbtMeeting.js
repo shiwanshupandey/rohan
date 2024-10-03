@@ -53,35 +53,73 @@ const uploadToDrive = async (fileBuffer, fileName, mimeType, folderId = '1A7Xs3s
   return `https://drive.google.com/uc?id=${driveResponse.data.id}&export=download`;
 };
 
+// // Create a new Meeting - POST
+// router.post('/', upload.fields([
+//   { name: 'documentaryEvidencePhoto', maxCount: 1 },
+//   { name: 'formFilledSignature', maxCount: 100 },
+// ]), async (req, res) => {
+//   try {
+//     console.log('Files:', req.files);
+//     console.log('Body:', req.body);
+
+//     const { projectName, date, time, typeOfTopic, geotagging, commentsBox } = req.body;
+
+//     // Upload documentary evidence photo
+//     let documentaryEvidencePhotoUrl = null;
+//     if (req.files['documentaryEvidencePhoto']) {
+//       const photo = req.files['documentaryEvidencePhoto'][0];
+//       documentaryEvidencePhotoUrl = await uploadToDrive(photo.buffer, photo.originalname, photo.mimetype);
+//     }
+
+//     // Process formFilled data
+//     const formFilledData = [];
+//     for (let i = 0; i < Object.keys(req.body).length; i++) {
+//       const nameKey = `formFilled[${i}].name`;
+//       const name = req.body[nameKey];
+
+//       if (name && req.files.formFilledSignature && req.files.formFilledSignature[i]) {
+//         const signature = req.files.formFilledSignature[i];
+//         const signatureUrl = await uploadToDrive(signature.buffer, `${name}_signature_${i}.jpg`, signature.mimetype);
+//         formFilledData.push({ name, signature: signatureUrl });
+//       }
+//     }
+
+//     // Create new Meeting document
+//     const newMeeting = new Meeting({
+//       projectName,
+//       date,
+//       time,
+//       typeOfTopic,
+//       formFilled: formFilledData,
+//       documentaryEvidencePhoto: documentaryEvidencePhotoUrl,
+//       geotagging,
+//       commentsBox,
+//     });
+
+//     await newMeeting.save();
+//     res.status(201).json(newMeeting);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
 // Create a new Meeting - POST
-router.post('/', upload.fields([
-  { name: 'documentaryEvidencePhoto', maxCount: 1 },
-  { name: 'formFilledSignature', maxCount: 100 },
-]), async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    console.log('Files:', req.files);
     console.log('Body:', req.body);
 
-    const { projectName, date, time, typeOfTopic, geotagging, commentsBox } = req.body;
+    const { projectName, date, time, typeOfTopic, documentaryEvidencePhotoUrl, geotagging, commentsBox, formFilled } = req.body;
 
-    // Upload documentary evidence photo
-    let documentaryEvidencePhotoUrl = null;
-    if (req.files['documentaryEvidencePhoto']) {
-      const photo = req.files['documentaryEvidencePhoto'][0];
-      documentaryEvidencePhotoUrl = await uploadToDrive(photo.buffer, photo.originalname, photo.mimetype);
-    }
-
-    // Process formFilled data
+    // Process formFilled data from request
     const formFilledData = [];
-    for (let i = 0; i < Object.keys(req.body).length; i++) {
-      const nameKey = `formFilled[${i}].name`;
-      const name = req.body[nameKey];
-
-      if (name && req.files.formFilledSignature && req.files.formFilledSignature[i]) {
-        const signature = req.files.formFilledSignature[i];
-        const signatureUrl = await uploadToDrive(signature.buffer, `${name}_signature_${i}.jpg`, signature.mimetype);
-        formFilledData.push({ name, signature: signatureUrl });
-      }
+    if (formFilled && formFilled.length > 0) {
+      formFilled.forEach((attendee, index) => {
+        formFilledData.push({
+          name: attendee.name,
+          signature: attendee.signature,  // This should already be the URL from the /image API
+        });
+      });
     }
 
     // Create new Meeting document
@@ -91,7 +129,7 @@ router.post('/', upload.fields([
       time,
       typeOfTopic,
       formFilled: formFilledData,
-      documentaryEvidencePhoto: documentaryEvidencePhotoUrl,
+      documentaryEvidencePhoto: documentaryEvidencePhotoUrl,  // This should already be the URL from /image API
       geotagging,
       commentsBox,
     });
@@ -105,8 +143,9 @@ router.post('/', upload.fields([
 });
 
 
+
 // Create a new API endpoint to upload an image to Google Drive
-router.post('/uploadImage', upload.single('image'), async (req, res) => {
+router.post('/image', upload.single('image'), async (req, res) => {
   try {
     // Check if file is present
     if (!req.file) {
