@@ -104,6 +104,30 @@ router.post('/', upload.fields([
   }
 });
 
+
+// Create a new API endpoint to upload an image to Google Drive
+router.post('/uploadImage', upload.single('image'), async (req, res) => {
+  try {
+    // Check if file is present
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Get file from request
+    const file = req.file;
+
+    // Upload the image to Google Drive
+    const fileUrl = await uploadToDrive(file.buffer, file.originalname, file.mimetype);
+
+    // Return the file URL
+    res.status(201).json({ fileUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+
 // Get all Meetings - GET
 router.get('/', async (req, res) => {
   try {
