@@ -171,11 +171,12 @@ router.delete('/:id', async (req, res) => {
     const meeting = await Meeting.findById(req.params.id);
     if (!meeting) return res.status(404).json({ error: 'Meeting not found' });
 
-    await meeting.remove();
+    await meeting.deleteOne();  // Updated to use deleteOne
     res.json({ message: 'Meeting deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 module.exports = router;
