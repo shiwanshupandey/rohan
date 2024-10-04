@@ -13,7 +13,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 const FOLDER_ID = '12eHgDHv5GSjstNKE0qKKQcmbGILA8VFp';
 
 // Create a new API endpoint to upload an image to Google Drive for Work Permits
-router.post('/upload-image', upload.single('image'), async (req, res) => {
+router.post('/image', upload.single('image'), async (req, res) => {
   try {
     // Check if the file is present
     if (!req.file) {
