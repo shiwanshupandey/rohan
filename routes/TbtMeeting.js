@@ -109,7 +109,7 @@ router.post('/', async (req, res) => {
   try {
     console.log('Body:', req.body);
 
-    const { projectName, date, time, typeOfTopic, documentaryEvidencePhotoUrl, geotagging, commentsBox, formFilled } = req.body;
+    const { projectName, date, time, typeOfTopic, documentaryEvidencePhoto, geotagging, commentsBox, formFilled } = req.body;
 
     // Process formFilled data from request
     const formFilledData = [];
@@ -129,7 +129,7 @@ router.post('/', async (req, res) => {
       time,
       typeOfTopic,
       formFilled: formFilledData,
-      documentaryEvidencePhoto: documentaryEvidencePhotoUrl,  // This should already be the URL from /image API
+      documentaryEvidencePhoto: documentaryEvidencePhoto,  // This should already be the URL from /image API
       geotagging,
       commentsBox,
     });
