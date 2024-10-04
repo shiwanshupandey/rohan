@@ -2,6 +2,7 @@ const express = require('express');
 const Observation = require('../models/UaUC');
 const router = express.Router();
 const { uploadToDrive } = require('../api/driveUtils');
+const multer = require('multer');
 
 
 const upload = multer({ storage: multer.memoryStorage() });
