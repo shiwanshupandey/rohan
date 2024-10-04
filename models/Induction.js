@@ -42,12 +42,7 @@ const InductionSchema = new mongoose.Schema({
     required: true
   },
   documentaryEvidencePhoto: {
-    type: String,
-    validate: {
-      validator: validateImageUrl,
-      message: props => `${props.value} is not a valid image URL!`
-    },
-    required: true
+    type: String
   },
   AnyOthers: {
     type: String,
@@ -59,12 +54,7 @@ const InductionSchema = new mongoose.Schema({
     required: true
   },
   inducteeSignBy: {
-    type: String,
-    validate: {
-      validator: validateImageUrl,
-      message: props => `${props.value} is not a valid image URL!`
-    },
-    required: true
+   type: String
   },
   geotagging: {
     type: String,
