@@ -1,6 +1,36 @@
 const express = require('express');
 const Observation = require('../models/UaUC');
 const router = express.Router();
+const { uploadToDrive } = require('../api/driveUtils');
+
+
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Folder ID for Google Drive (from your shared link)
+const FOLDER_ID = '1wZWyyagDR2DJ9qxIeinu-bQMfs7iADjy';
+
+// Create a new API endpoint to upload an image to Google Drive
+router.post('/upload-image', upload.single('image'), async (req, res) => {
+  try {
+    // Check if file is present
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Get file from request
+    const file = req.file;
+
+    // Upload the image to Google Drive
+    const fileUrl = await uploadToDrive(file.buffer, file.originalname, file.mimetype, FOLDER_ID);
+
+    // Return the file URL
+    res.status(201).json({ fileUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
 
 // Create a new observation
 router.post('/', async (req, res) => {
