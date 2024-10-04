@@ -1,6 +1,6 @@
 const { google } = require('googleapis');
 const { Readable } = require('stream');
-const { private_key, client_email } = require('./credentials.json');
+const { private_key, client_email } = require('../routes/credentials.json');
 
 // Configure OAuth2 Client
 const oauth2Client = new google.auth.JWT(
