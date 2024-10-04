@@ -59,12 +59,7 @@ const PermitSchema = new mongoose.Schema({
     required: true
     },
   undersignDraft: { 
-    type: String,
-    validate: {
-      validator: validateImageUrl,
-      message: props => `${props.value} is not a valid image URL!`
-    },
-    required: true
+   type: String
    },
   createdBy: { 
     type: mongoose.Schema.Types.ObjectId,
