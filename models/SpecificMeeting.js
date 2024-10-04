@@ -39,12 +39,7 @@ const SpecificMeetingSchema = new mongoose.Schema({
       required: true 
     },
     signature: {
-      type: String,
-      validate: {
-        validator: validateImageUrl,
-        message: props => `${props.value} is not a valid image URL!`
-      },
-      required: true
+      type: String
     },
     designation: { 
       type: String, 
@@ -57,11 +52,7 @@ const SpecificMeetingSchema = new mongoose.Schema({
     required: true
   },
   documentaryEvidencePhoto: { 
-    type: String,
-    validate: {
-      validator: validateImageUrl,
-      message: props => `${props.value} is not a valid image URL!`
-    }
+   type: String
   },
   geotagging: { 
     type: String, 
