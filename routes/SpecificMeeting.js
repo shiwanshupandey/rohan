@@ -10,7 +10,7 @@ const { uploadToDrive } = require('../api/driveUtils');
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Folder ID for the new Google Drive folder
-const FOLDER_ID = '12eHgDHv5GSjstNKE0qKKQcmbGILA8VFp';
+const FOLDER_ID = '1FNQfihtVUKUfN650pP8PRoaz8075vMs';
 
 // Create a new API endpoint to upload an image to Google Drive for Work Permits
 router.post('/image', upload.single('image'), async (req, res) => {
