@@ -1,6 +1,38 @@
 const express = require('express');
 const SpecificMeeting = require('../models/SpecificMeeting'); // Assuming the model is in models folder
 const router = express.Router();
+const multer = require('multer');
+
+const { uploadToDrive } = require('../api/driveUtils');
+
+
+// Multer middleware using memory storage
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Folder ID for the new Google Drive folder
+const FOLDER_ID = '12eHgDHv5GSjstNKE0qKKQcmbGILA8VFp';
+
+// Create a new API endpoint to upload an image to Google Drive for Work Permits
+router.post('/image', upload.single('image'), async (req, res) => {
+  try {
+    // Check if the file is present
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Get the file from the request
+    const file = req.file;
+
+    // Upload the image to Google Drive
+    const fileUrl = await uploadToDrive(file.buffer, file.originalname, file.mimetype, FOLDER_ID);
+
+    // Return the file URL
+    res.status(201).json({ fileUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
 
 // Create new meeting(s) - Supports posting multiple records
 router.post('/', async (req, res) => {
