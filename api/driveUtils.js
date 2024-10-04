@@ -2,10 +2,11 @@ const { google } = require('googleapis');
 const { Readable } = require('stream');
 const { private_key, client_email } = require('./credentials.json');
 
+// Configure OAuth2 Client
 const oauth2Client = new google.auth.JWT(
-  client_email,
-  null,
-  private_key,
+  client_email, 
+  null, 
+  private_key, 
   ['https://www.googleapis.com/auth/drive']
 );
 
@@ -43,6 +44,7 @@ const uploadToDrive = async (fileBuffer, fileName, mimeType, folderId) => {
     requestBody: { role: 'reader', type: 'anyone' },
   });
 
+  // Return the publicly accessible link
   return `https://drive.google.com/uc?id=${driveResponse.data.id}&export=download`;
 };
 
