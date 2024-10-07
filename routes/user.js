@@ -4,25 +4,22 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 
-
 const JWT_SECRET = '8dfW@4^0YbWvX|X9jZ0s7&mkHbG5NsKlfqTdZvJ^!bQ1Qz8bE6K@PhM9$QzT!4L';
-
 
 // Get all users
 router.get('/', async (req, res) => {
   try {
-      const users = await User.find(); // Find all users
+      const users = await User.find().populate('role').populate('ProjectName'); // Populate role and ProjectName
       res.json(users);
   } catch (error) {
       res.status(500).json({ message: 'Server error', error });
   }
 });
 
-
 // Register (Sign-up)
 router.post('/register', async (req, res) => {
   try {
-      const { userId, name, photo, role, emailId, password, phone, address } = req.body;
+      const { userId, name, photo, role, emailId, password, phone, address, ProjectName } = req.body;
 
       // Check if user already exists
       const existingUser = await User.findOne({ emailId });
@@ -42,7 +39,8 @@ router.post('/register', async (req, res) => {
           emailId,
           password: hashedPassword,
           phone,
-          address
+          address,
+          ProjectName, // Add ProjectName when creating a user
       });
 
       await newUser.save();
@@ -86,7 +84,7 @@ router.post('/login', async (req, res) => {
 // Get user by ID
 router.get('/user/:id', async (req, res) => {
   try {
-      const user = await User.findById(req.params.id).populate('role');
+      const user = await User.findById(req.params.id).populate('role').populate('ProjectName'); // Populate role and ProjectName
       if (!user) {
           return res.status(404).json({ message: 'User not found' });
       }
@@ -99,12 +97,12 @@ router.get('/user/:id', async (req, res) => {
 // Update user by ID
 router.put('/user/:id', async (req, res) => {
   try {
-      const { name, photo, role, phone, address, isActive } = req.body;
+      const { name, photo, role, phone, address, isActive, ProjectName } = req.body;
 
       // Find and update user
       const user = await User.findByIdAndUpdate(
           req.params.id,
-          { name, photo, role, phone, address, isActive, updatedAt: Date.now() },
+          { name, photo, role, phone, address, isActive, ProjectName, updatedAt: Date.now() }, // Add ProjectName to update
           { new: true }
       );
 
