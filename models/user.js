@@ -13,7 +13,8 @@ const UserSchema = new mongoose.Schema({
     },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
-    isActive: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true },
+    ProjectName:[{ type: mongoose.Schema.Types.ObjectId, ref: 'Projects', required: true }] 
 });
 
 UserSchema.pre('save', function (next) {
