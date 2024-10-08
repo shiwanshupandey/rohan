@@ -47,7 +47,7 @@ router.post('/', async (req, res) => {
       subContractorName,
       typeOfTopic,
       documentaryEvidencePhoto,  // This is now treated as a URL string
-      AnyOthers,
+      anyOthers,
       instructionBy,
       inducteeSignBy,
       geotagging
@@ -64,7 +64,7 @@ router.post('/', async (req, res) => {
       subContractorName,
       typeOfTopic,
       documentaryEvidencePhoto,
-      AnyOthers,
+      anyOthers,
       instructionBy,
       inducteeSignBy,
       geotagging
