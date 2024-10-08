@@ -6,7 +6,6 @@ const router = express.Router();
 
 const JWT_SECRET = '8dfW@4^0YbWvX|X9jZ0s7&mkHbG5NsKlfqTdZvJ^!bQ1Qz8bE6K@PhM9$QzT!4L';
 
-// Get all users
 router.get('/', async (req, res) => {
   try {
       const users = await User.find()
@@ -14,9 +13,11 @@ router.get('/', async (req, res) => {
         .populate('projectName'); // Populate projectName
       res.json(users);
   } catch (error) {
-      res.status(500).json({ message: 'Server error', error });
+      console.error('Error fetching users:', error); // Log the full error
+      res.status(500).json({ message: 'Server error', error: error.message }); // Send error message to client
   }
 });
+
 
 // Register (Sign-up)
 router.post('/register', async (req, res) => {
