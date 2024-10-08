@@ -9,7 +9,9 @@ const JWT_SECRET = '8dfW@4^0YbWvX|X9jZ0s7&mkHbG5NsKlfqTdZvJ^!bQ1Qz8bE6K@PhM9$QzT
 // Get all users
 router.get('/', async (req, res) => {
   try {
-      const users = await User.find().populate('role').populate('ProjectName'); // Populate role and ProjectName
+      const users = await User.find()
+        .populate('role')  // Populate role
+        .populate('projectName'); // Populate projectName
       res.json(users);
   } catch (error) {
       res.status(500).json({ message: 'Server error', error });
@@ -19,7 +21,7 @@ router.get('/', async (req, res) => {
 // Register (Sign-up)
 router.post('/register', async (req, res) => {
   try {
-      const { userId, name, photo, role, emailId, password, phone, address, ProjectName } = req.body;
+      const { userId, name, photo, role, emailId, password, phone, address, projectName } = req.body;
 
       // Check if user already exists
       const existingUser = await User.findOne({ emailId });
@@ -40,7 +42,7 @@ router.post('/register', async (req, res) => {
           password: hashedPassword,
           phone,
           address,
-          ProjectName, // Add ProjectName when creating a user
+          projectName, // Add projectName when creating a user
       });
 
       await newUser.save();
@@ -84,7 +86,9 @@ router.post('/login', async (req, res) => {
 // Get user by ID
 router.get('/user/:id', async (req, res) => {
   try {
-      const user = await User.findById(req.params.id).populate('role').populate('ProjectName'); // Populate role and ProjectName
+      const user = await User.findById(req.params.id)
+        .populate('role')  // Populate role
+        .populate('projectName'); // Populate projectName
       if (!user) {
           return res.status(404).json({ message: 'User not found' });
       }
@@ -97,12 +101,12 @@ router.get('/user/:id', async (req, res) => {
 // Update user by ID
 router.put('/user/:id', async (req, res) => {
   try {
-      const { name, photo, role, phone, address, isActive, ProjectName } = req.body;
+      const { name, photo, role, phone, address, isActive, projectName } = req.body;
 
       // Find and update user
       const user = await User.findByIdAndUpdate(
           req.params.id,
-          { name, photo, role, phone, address, isActive, ProjectName, updatedAt: Date.now() }, // Add ProjectName to update
+          { name, photo, role, phone, address, isActive, projectName, updatedAt: Date.now() }, // Add projectName to update
           { new: true }
       );
 
