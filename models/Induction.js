@@ -44,7 +44,7 @@ const InductionSchema = new mongoose.Schema({
   documentaryEvidencePhoto: {
     type: String
   },
-  AnyOthers: {
+  anyOthers: {
     type: String,
     required: true
   },
